@@ -13,12 +13,12 @@ A maior parte dele foi automatizada, porém em alguns momentos uma intervenção
 * Wikidata Reconciliation Service
 * Wikidata API
 
-Projeto do OpenRefine está disponível neste [arquivo](../blob/main/data/500%2B_openrefine.tar.gz).
+Projeto do OpenRefine está disponível neste [arquivo](../main/data/500%2B_openrefine.tar.gz).
 
 ## Coleta
 
 Os dados foram coletados a partir das <a href="#fontes">fontes</a> listadas, na ordem em que foram elencadas. Em alguns casos foi realizada uma referência cruzada das informações das fontes para tirar dúvidas sobre as informações das músicas, posições, álbuns, etc.
-Nesta etapa todo o trabalho foi realizado utilizando o Excel e o resultado final foi compilado no [arquivo raw](../blob/main/data/raw/500%2B_raw.xlsx).
+Nesta etapa todo o trabalho foi realizado utilizando o Excel e o resultado final foi compilado no [arquivo raw](../main/data/raw/500%2B_raw.xlsx).
 Após isso foi gerada uma planilha com todas as 12.000 músicas (até o momento, compreendendo os anos 2000-2023) para início do processo de tratamento.
 
 ## Tratamento e clusterização
