@@ -13,11 +13,11 @@ df_listagem['Ano_Periodo'] = df_listagem.Ano.astype(str).str[-2:] + "-" + (df_li
 total_musicas = df_listagem.Id.nunique()
 str_total_musicas = "🎶 " + locale.format_string("%d", total_musicas, grouping = True) + " músicas no total"
 
-total_musicas_distintas = len(np.unique(df_listagem.Musica.astype(str)).tolist())
+total_musicas_distintas = len(np.unique(df_listagem.Musica.dropna().astype(str)).tolist())
 str_total_musicas_distintas = "🎵 " + locale.format_string("%d", total_musicas_distintas, grouping = True) + " músicas diferentes"
 
-total_artistas = len(np.unique(df_listagem.Artista).tolist())
+total_artistas = len(np.unique(df_listagem.Artista.dropna()).tolist())
 str_total_artistas = "🧑‍🎤 " + locale.format_string("%d", total_artistas, grouping = True) + " artista(s)"
 
-total_albuns = len(np.unique(df_listagem.Album_Single.astype(str)).tolist())
+total_albuns = len(np.unique(df_listagem.Album_Single.dropna().astype(str)).tolist())
 str_total_albuns = "💿 " + locale.format_string("%d", total_albuns, grouping = True) + " álbum(s)/single(s)"
