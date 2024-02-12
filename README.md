@@ -45,7 +45,7 @@ Os nomes das músicas também foram padronizados, agregando itens que estavam co
 
 Diversas observações foram realizadas para esses "tipos" de músicas, tais como "ao vivo", "acústica", ou alguma outra versão específica. Para músicas "ao vivo" e "acústica" em específico, essa observação norteou a escolha do álbum (descrito na próxima seção).
 
-Além disso, foi registrado também se a música foi repetida na lista daquele ano (ocorreram algumas vezes ao longo desses 24 anos). Nas fontes consultadas já havia a indicação de que algumas músicas estavam repetidas, o que leva a crer que não foi um erro de digitação de quem registrou a informação, mas sim uma falha na programação da própria Kiss.
+Além disso, foi registrado também se a música foi repetida na lista daquele ano (ocorreram 32 vezes ao longo desses 24 anos). Nas fontes consultadas já havia a indicação de que algumas músicas estavam repetidas, o que leva a crer que não foi um erro de digitação de quem registrou a informação, mas sim uma falha na programação da própria Kiss. Neste caso, foi anotado no campo "observação" como "repetida", na música da posição mais baixa (ou seja, quando ela efetivamente foi repedita na reprodução).
 
 ### Álbum/Single
 
@@ -110,4 +110,4 @@ Em um projeto complementar tentarei estimar quais eram as possíveis músicas, c
 1. Planilha compilada pelo [@fabriciorby](https://x.com/fabriciorby) - https://docs.google.com/spreadsheets/d/1OHdR-RKBsELOR5nZ-L5pa8OohbvdNT29z7T-6SfWD70/
 2. Blog "LISTA das 500 MAIS da KISS FM de 2000 a 2023" - https://leitespc.blogspot.com/
 3. Blog "Álbuns de Cabeceira" - https://albunsdecabeceira.blogspot.com/
-4. Site Whiplash - https://whiplash.net/materias/melhores/195761.html
+4. Site Whiplash - https://whiplash.net/materias/melhores/195761.html, https://whiplash.net/materias/melhores/170703.html
