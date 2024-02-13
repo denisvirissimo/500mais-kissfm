@@ -19,9 +19,15 @@ def filtrar_periodo(df_data, periodo_inicial, periodo_final):
   periodos_selecionados = periodos[indice_inicial:indice_final]
   return df_data[df_data['Ano_Periodo'].isin(periodos_selecionados)]
 
+def filtrar_posicoes(df_data, posicao_inicial, posicao_final):
+  df_posicoes_filtrado = pd.DataFrame()
+  posicoes = list(range(posicao_inicial, posicao_final + 1))
+  return df_data[df_data['Posicao'].isin(posicoes)]
+
 
 # App
 df_listagem_filtrada = filtrar_periodo(df_listagem, '00-01', '23-24')
+df_listagem_filtrada = filtrar_posicoes(df_listagem_filtrada, 1, 500)
 
 total_musicas = df_listagem_filtrada.Id.nunique()
 total_musicas_distintas = len(df_listagem_filtrada.loc[(df_listagem_filtrada['Artista'] != '???') & (df_listagem_filtrada['Musica'].str.len() > 0), ['Artista', 'Musica']].drop_duplicates())
