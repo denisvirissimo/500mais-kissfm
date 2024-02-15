@@ -44,13 +44,13 @@ def get_ultimo_ano_lancamento(df_data):
   return df_listagem.dropna(subset=['Musica']).sort_values(by = 'Data_Lancamento_Album').tail(1)['Data_Lancamento_Album'].dt.year
 
 def get_total_musicas_distintas(df_data):
-  return len(df_data.loc[(df_data['Artista'] != '???') & (df_data['Musica'].str.len() > 0), ['Artista', 'Musica']].drop_duplicates())
+  return len(df_data.loc[(df_data['Artista'] != '???') & (df_data['Musica'].str.len() > 0) & (df_data['Observacao'] != 'repetida')].drop_duplicates(subset=['Artista', 'Musica', 'Observacao']))
 
 def get_acumulado_musicas_distintas(df_data):
   periodos = np.unique(df_data.Ano_Periodo).tolist()
   distinta_acumulado_periodo = []
   for p in periodos:
-    distinta_acumulado_periodo.append(get_total_musicas_distintas(filtrar_periodo(df_listagem, periodos[0], p)))
+    distinta_acumulado_periodo.append(get_total_musicas_distintas(filtrar_periodo(df_data, periodos[0], p)))
   return pd.DataFrame({'Anos': periodos, 'Acumulado': distinta_acumulado_periodo})
 
 # App
@@ -69,7 +69,7 @@ str_total_albuns = "💿 " + locale.format_string("%d", total_albuns, grouping =
 
 print(str_total_musicas, str_total_musicas_distintas, str_total_artistas, str_total_albuns, "\n")
 
-array = get_acumulado_musicas_distintas(df_listagem)
+array = get_acumulado_musicas_distintas(df_listagem_filtrada)
 
 rc = {'figure.figsize':(8,4.5),
       'axes.facecolor':'#0e1117',
