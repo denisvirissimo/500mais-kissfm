@@ -15,43 +15,47 @@ df_listagem['Data_Lancamento_Album'] = pd.to_datetime(df_listagem['Data_Lancamen
 
 #Funções
 def filtrar_periodo(df_data, periodo_inicial, periodo_final):
-  periodos = np.unique(df_data.Ano_Periodo).tolist()
-  indice_inicial = periodos.index(periodo_inicial)
-  indice_final = periodos.index(periodo_final)+1
-  periodos_selecionados = periodos[indice_inicial:indice_final]
-  return df_data[df_data['Ano_Periodo'].isin(periodos_selecionados)]
+    periodos = np.unique(df_data.Ano_Periodo).tolist()
+    indice_inicial = periodos.index(periodo_inicial)
+    indice_final = periodos.index(periodo_final)+1
+    periodos_selecionados = periodos[indice_inicial:indice_final]
+    return df_data[df_data['Ano_Periodo'].isin(periodos_selecionados)]
 
 def filtrar_posicoes(df_data, posicao_inicial, posicao_final):
-  posicoes = list(range(posicao_inicial, posicao_final + 1))
-  return df_data[df_data['Posicao'].isin(posicoes)]
+    posicoes = list(range(posicao_inicial, posicao_final + 1))
+    return df_data[df_data['Posicao'].isin(posicoes)]
 
 def get_primeiro_ano(df_data):
-  return df_data.sort_values(by='Ano').head(1)['Ano']
+    return df_data.sort_values(by='Ano').head(1)['Ano']
 
 def get_ultimo_ano(df_data):
-  return df_data.sort_values(by='Ano').tail(1)['Ano']
+    return df_data.sort_values(by='Ano').tail(1)['Ano']
 
 def get_primeiro_ano_periodo(df_data):
-  return df_data.sort_values(by='Ano').head(1)['Ano_Periodo']
+    return df_data.sort_values(by='Ano').head(1)['Ano_Periodo']
 
 def get_ultimo_ano_periodo(df_data):
-  return df_data.sort_values(by='Ano').tail(1)['Ano_Periodo']
+    return df_data.sort_values(by='Ano').tail(1)['Ano_Periodo']
 
 def get_primeiro_ano_lancamento(df_data):
-  return df_listagem.dropna(subset=['Musica']).sort_values(by = 'Data_Lancamento_Album').head(1)['Data_Lancamento_Album'].dt.year
+    return df_listagem.dropna(subset=['Musica']).sort_values(by = 'Data_Lancamento_Album').head(1)['Data_Lancamento_Album'].dt.year
 
 def get_ultimo_ano_lancamento(df_data):
-  return df_listagem.dropna(subset=['Musica']).sort_values(by = 'Data_Lancamento_Album').tail(1)['Data_Lancamento_Album'].dt.year
+    return df_listagem.dropna(subset=['Musica']).sort_values(by = 'Data_Lancamento_Album').tail(1)['Data_Lancamento_Album'].dt.year
 
 def get_total_musicas_distintas(df_data):
-  return len(df_data.loc[(df_data['Artista'] != '???') & (df_data['Musica'].str.len() > 0) & (df_data['Observacao'] != 'repetida')].drop_duplicates(subset=['Artista', 'Musica', 'Observacao']))
+    return len(df_data.loc[(df_data['Artista'] != '???') & (df_data['Musica'].str.len() > 0) & (df_data['Observacao'] != 'repetida')].drop_duplicates(subset=['Artista', 'Musica', 'Observacao']))
 
 def get_acumulado_musicas_distintas(df_data):
-  periodos = np.unique(df_data.Ano_Periodo).tolist()
-  distinta_acumulado_periodo = []
-  for p in periodos:
-    distinta_acumulado_periodo.append(get_total_musicas_distintas(filtrar_periodo(df_data, periodos[0], p)))
-  return pd.DataFrame({'Anos': periodos, 'Acumulado': distinta_acumulado_periodo})
+    periodos = np.unique(df_data.Ano_Periodo).tolist()
+    distinta_acumulado_periodo = []
+    for p in periodos:
+        distinta_acumulado_periodo.append(get_total_musicas_distintas(filtrar_periodo(df_data, periodos[0], p)))
+    return pd.DataFrame({'Anos': periodos, 'Acumulado': distinta_acumulado_periodo})
+
+def get_musicas_ano_lancamento(df_data):
+    df2 = df_data.loc[(df_data['Artista'] != '???') & (df_data['Musica'].str.len() > 0) & (df_data['Observacao'] != 'repetida')].drop_duplicates(subset=['Artista', 'Musica', 'Observacao'])
+    return pd.DataFrame(df2.groupby(df2['Data_Lancamento_Album'].dt.year).size().reset_index().rename(columns={0: 'Total_Musicas'}))
 
 # App
 df_listagem_filtrada = filtrar_periodo(df_listagem, '00-01', '23-24')
@@ -71,7 +75,7 @@ print(str_total_musicas, str_total_musicas_distintas, str_total_artistas, str_to
 
 array = get_acumulado_musicas_distintas(df_listagem_filtrada)
 
-rc = {'figure.figsize':(8,4.5),
+rc = {'figure.figsize':(12,4.5),
       'axes.facecolor':'#0e1117',
       'axes.edgecolor': '#0e1117',
       'axes.labelcolor': 'white',
@@ -91,6 +95,39 @@ fig, ax = plt.subplots()
 
 ax = sb.barplot(x="Anos", y="Acumulado", data=array, color = "#b80606")
 ax.set(xlabel = "Anos", ylabel = "Acumulado de Músicas distintas")
+plt.xticks(rotation=66,horizontalalignment="right")
+for p in ax.patches:
+    ax.annotate(format(str(int(p.get_height()))),
+          (p.get_x() + p.get_width() / 2., p.get_height()),
+            ha = 'center',
+            va = 'center',
+            xytext = (0, 18),
+            rotation = 90,
+            textcoords = 'offset points')
+plt.show()
+
+array = get_musicas_ano_lancamento(df_listagem_filtrada)
+
+rc = {'figure.figsize':(20,4.5),
+      'axes.facecolor':'#0e1117',
+      'axes.edgecolor': '#0e1117',
+      'axes.labelcolor': 'white',
+      'figure.facecolor': '#0e1117',
+      'patch.edgecolor': '#0e1117',
+      'text.color': 'white',
+      'xtick.color': 'white',
+      'ytick.color': 'white',
+      'grid.color': 'grey',
+      'font.size' : 8,
+      'axes.labelsize': 12,
+      'xtick.labelsize': 8,
+      'ytick.labelsize': 12}
+
+plt.rcParams.update(rc)
+fig, ax = plt.subplots()
+
+ax = sb.barplot(x="Data_Lancamento_Album", y="Total_Musicas", data=array, color = "#b80606")
+ax.set(xlabel = "Anos", ylabel = "Quantidade de Músicas distintas")
 plt.xticks(rotation=66,horizontalalignment="right")
 for p in ax.patches:
     ax.annotate(format(str(int(p.get_height()))),
