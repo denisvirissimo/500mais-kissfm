@@ -7,11 +7,15 @@ import locale
 #Configuração
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
+def get_decada(ano):
+    return 'Anos ' + str(ano)[2] + '0'
+
 #Inicialização
 df_listagem = pd.read_csv("./data/500+.csv")
 df_listagem['Id'] = range(1, len(df_listagem) + 1)
 df_listagem['Ano_Periodo'] = df_listagem.Ano.astype(str).str[-2:] + "-" + (df_listagem.Ano +1).astype(str).str[-2:]
 df_listagem['Data_Lancamento_Album'] = pd.to_datetime(df_listagem['Data_Lancamento_Album'])
+df_listagem['Decada_Lancamento_Album'] = df_listagem['Data_Lancamento_Album'].dt.year.apply(get_decada)
 
 #Funções
 def filtrar_periodo(df_data, periodo_inicial, periodo_final):
@@ -56,6 +60,11 @@ def get_acumulado_musicas_distintas(df_data):
 def get_musicas_ano_lancamento(df_data):
     df2 = df_data.loc[(df_data['Artista'] != '???') & (df_data['Musica'].str.len() > 0) & (df_data['Observacao'] != 'repetida')].drop_duplicates(subset=['Artista', 'Musica', 'Observacao'])
     return pd.DataFrame(df2.groupby(df2['Data_Lancamento_Album'].dt.year).size().reset_index().rename(columns={0: 'Total_Musicas'}))
+
+def get_musicas_decada_lancamento(df_data):
+    df2 = df_data.loc[(df_data['Artista'] != '???') & (df_data['Musica'].str.len() > 0) & (df_data['Observacao'] != 'repetida')].drop_duplicates(subset=['Artista', 'Musica', 'Observacao'])
+    df2['Total_Musicas'] = df2.groupby('Decada_Lancamento_Album')['Decada_Lancamento_Album'].transform('count')
+    return pd.DataFrame(df2.sort_values('Data_Lancamento_Album').groupby(['Decada_Lancamento_Album', 'Total_Musicas']).head(1))[['Decada_Lancamento_Album', 'Total_Musicas']]
 
 # App
 df_listagem_filtrada = filtrar_periodo(df_listagem, '00-01', '23-24')
@@ -106,9 +115,9 @@ for p in ax.patches:
             textcoords = 'offset points')
 plt.show()
 
-array = get_musicas_ano_lancamento(df_listagem_filtrada)
+array = get_musicas_decada_lancamento(df_listagem_filtrada)
 
-rc = {'figure.figsize':(20,4.5),
+rc = {'figure.figsize':(10,4.5),
       'axes.facecolor':'#0e1117',
       'axes.edgecolor': '#0e1117',
       'axes.labelcolor': 'white',
@@ -126,7 +135,7 @@ rc = {'figure.figsize':(20,4.5),
 plt.rcParams.update(rc)
 fig, ax = plt.subplots()
 
-ax = sb.barplot(x="Data_Lancamento_Album", y="Total_Musicas", data=array, color = "#b80606")
+ax = sb.barplot(x="Decada_Lancamento_Album", y="Total_Musicas", data=array, color = "#b80606")
 ax.set(xlabel = "Anos", ylabel = "Quantidade de Músicas distintas")
 plt.xticks(rotation=66,horizontalalignment="right")
 for p in ax.patches:
