@@ -48,7 +48,10 @@ def get_ultimo_ano_lancamento(df_data):
     return df_listagem.dropna(subset=['Musica']).sort_values(by = 'Data_Lancamento_Album').tail(1)['Data_Lancamento_Album'].dt.year
 
 def get_total_musicas_distintas(df_data):
-    return len(df_data.loc[(df_data['Artista'] != '???') & (df_data['Musica'].str.len() > 0) & (df_data['Observacao'] != 'repetida')].drop_duplicates(subset=['Artista', 'Musica', 'Observacao']))
+    return len(get_musicas_distintas(df_data))
+
+def get_musicas_distintas(df_data):
+    return df_data.loc[(df_data['Artista'] != '???') & (df_data['Musica'].str.len() > 0) & (df_data['Observacao'] != 'repetida')].drop_duplicates(subset=['Artista', 'Musica', 'Observacao'])
 
 def get_acumulado_musicas_distintas(df_data):
     periodos = np.unique(df_data.Ano_Periodo).tolist()
@@ -58,13 +61,13 @@ def get_acumulado_musicas_distintas(df_data):
     return pd.DataFrame({'Anos': periodos, 'Acumulado': distinta_acumulado_periodo})
 
 def get_musicas_ano_lancamento(df_data):
-    df2 = df_data.loc[(df_data['Artista'] != '???') & (df_data['Musica'].str.len() > 0) & (df_data['Observacao'] != 'repetida')].drop_duplicates(subset=['Artista', 'Musica', 'Observacao'])
-    return pd.DataFrame(df2.groupby(df2['Data_Lancamento_Album'].dt.year).size().reset_index().rename(columns={0: 'Total_Musicas'}))
+    df_temp = get_musicas_distintas(df_data)
+    return pd.DataFrame(df_temp.groupby(df_temp['Data_Lancamento_Album'].dt.year).size().reset_index().rename(columns={0: 'Total_Musicas'}))
 
 def get_musicas_decada_lancamento(df_data):
-    df2 = df_data.loc[(df_data['Artista'] != '???') & (df_data['Musica'].str.len() > 0) & (df_data['Observacao'] != 'repetida')].drop_duplicates(subset=['Artista', 'Musica', 'Observacao'])
-    df2['Total_Musicas'] = df2.groupby('Decada_Lancamento_Album')['Decada_Lancamento_Album'].transform('count')
-    return pd.DataFrame(df2.sort_values('Data_Lancamento_Album').groupby(['Decada_Lancamento_Album', 'Total_Musicas']).head(1))[['Decada_Lancamento_Album', 'Total_Musicas']]
+    df_temp = get_musicas_distintas(df_data)
+    df_temp['Total_Musicas'] = df_temp.groupby('Decada_Lancamento_Album')['Decada_Lancamento_Album'].transform('count')
+    return pd.DataFrame(df_temp.sort_values('Data_Lancamento_Album').groupby(['Decada_Lancamento_Album', 'Total_Musicas']).head(1))[['Decada_Lancamento_Album', 'Total_Musicas']]
 
 
 def plotar_grafico_barra(df_data, xdata, ydata, xlabel, ylabel):
