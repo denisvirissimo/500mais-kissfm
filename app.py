@@ -66,6 +66,39 @@ def get_musicas_decada_lancamento(df_data):
     df2['Total_Musicas'] = df2.groupby('Decada_Lancamento_Album')['Decada_Lancamento_Album'].transform('count')
     return pd.DataFrame(df2.sort_values('Data_Lancamento_Album').groupby(['Decada_Lancamento_Album', 'Total_Musicas']).head(1))[['Decada_Lancamento_Album', 'Total_Musicas']]
 
+
+def plotar_grafico_barra(df_data, xdata, ydata, xlabel, ylabel):
+    rc = {'figure.figsize':(12,4.5),
+      'axes.facecolor':'#0e1117',
+      'axes.edgecolor': '#0e1117',
+      'axes.labelcolor': 'white',
+      'figure.facecolor': '#0e1117',
+      'patch.edgecolor': '#0e1117',
+      'text.color': 'white',
+      'xtick.color': 'white',
+      'ytick.color': 'white',
+      'grid.color': 'grey',
+      'font.size' : 8,
+      'axes.labelsize': 12,
+      'xtick.labelsize': 8,
+      'ytick.labelsize': 12}
+
+    plt.rcParams.update(rc)
+    fig, ax = plt.subplots()
+
+    ax = sb.barplot(x=xdata, y=ydata, data=df_data, color = "#b80606")
+    ax.set(xlabel = xlabel, ylabel = ylabel)
+    plt.xticks(rotation=66,horizontalalignment="right")
+    for p in ax.patches:
+        ax.annotate(format(str(int(p.get_height()))),
+              (p.get_x() + p.get_width() / 2., p.get_height()),
+                ha = 'center',
+                va = 'center',
+                xytext = (0, 18),
+                rotation = 90,
+                textcoords = 'offset points')
+    plt.show()
+
 # App
 df_listagem_filtrada = filtrar_periodo(df_listagem, '00-01', '23-24')
 df_listagem_filtrada = filtrar_posicoes(df_listagem_filtrada, 1, 500)
@@ -82,68 +115,8 @@ str_total_albuns = "💿 " + locale.format_string("%d", total_albuns, grouping =
 
 print(str_total_musicas, str_total_musicas_distintas, str_total_artistas, str_total_albuns, "\n")
 
-array = get_acumulado_musicas_distintas(df_listagem_filtrada)
+plotar_grafico_barra(get_acumulado_musicas_distintas(df_listagem_filtrada), "Anos", "Acumulado", "Anos", "Acumulado de Músicas distintas")
 
-rc = {'figure.figsize':(12,4.5),
-      'axes.facecolor':'#0e1117',
-      'axes.edgecolor': '#0e1117',
-      'axes.labelcolor': 'white',
-      'figure.facecolor': '#0e1117',
-      'patch.edgecolor': '#0e1117',
-      'text.color': 'white',
-      'xtick.color': 'white',
-      'ytick.color': 'white',
-      'grid.color': 'grey',
-      'font.size' : 8,
-      'axes.labelsize': 12,
-      'xtick.labelsize': 8,
-      'ytick.labelsize': 12}
+plotar_grafico_barra(get_musicas_ano_lancamento(df_listagem_filtrada), "Data_Lancamento_Album", "Total_Musicas", "Anos", "Quantidade de Músicas distintas")
 
-plt.rcParams.update(rc)
-fig, ax = plt.subplots()
-
-ax = sb.barplot(x="Anos", y="Acumulado", data=array, color = "#b80606")
-ax.set(xlabel = "Anos", ylabel = "Acumulado de Músicas distintas")
-plt.xticks(rotation=66,horizontalalignment="right")
-for p in ax.patches:
-    ax.annotate(format(str(int(p.get_height()))),
-          (p.get_x() + p.get_width() / 2., p.get_height()),
-            ha = 'center',
-            va = 'center',
-            xytext = (0, 18),
-            rotation = 90,
-            textcoords = 'offset points')
-plt.show()
-
-array = get_musicas_decada_lancamento(df_listagem_filtrada)
-
-rc = {'figure.figsize':(10,4.5),
-      'axes.facecolor':'#0e1117',
-      'axes.edgecolor': '#0e1117',
-      'axes.labelcolor': 'white',
-      'figure.facecolor': '#0e1117',
-      'patch.edgecolor': '#0e1117',
-      'text.color': 'white',
-      'xtick.color': 'white',
-      'ytick.color': 'white',
-      'grid.color': 'grey',
-      'font.size' : 8,
-      'axes.labelsize': 12,
-      'xtick.labelsize': 8,
-      'ytick.labelsize': 12}
-
-plt.rcParams.update(rc)
-fig, ax = plt.subplots()
-
-ax = sb.barplot(x="Decada_Lancamento_Album", y="Total_Musicas", data=array, color = "#b80606")
-ax.set(xlabel = "Anos", ylabel = "Quantidade de Músicas distintas")
-plt.xticks(rotation=66,horizontalalignment="right")
-for p in ax.patches:
-    ax.annotate(format(str(int(p.get_height()))),
-          (p.get_x() + p.get_width() / 2., p.get_height()),
-            ha = 'center',
-            va = 'center',
-            xytext = (0, 18),
-            rotation = 90,
-            textcoords = 'offset points')
-plt.show()
+plotar_grafico_barra(get_musicas_decada_lancamento(df_listagem_filtrada), "Decada_Lancamento_Album", "Total_Musicas", "Anos", "Quantidade de Músicas distintas")
