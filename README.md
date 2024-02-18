@@ -102,7 +102,10 @@ Caso você consiga essa informação, por favor abra uma issue para que o arquiv
 
 Em um projeto complementar tentarei estimar quais eram as possíveis músicas, com base na análise dos dados das músicas votadas em outros anos.
 
-## Ajustes necessários
+---
+
+# Análise dos dados
+
 
 
 ### Fontes
@@ -111,3 +114,4 @@ Em um projeto complementar tentarei estimar quais eram as possíveis músicas, c
 2. Blog "LISTA das 500 MAIS da KISS FM de 2000 a 2023" - https://leitespc.blogspot.com/
 3. Blog "Álbuns de Cabeceira" - https://albunsdecabeceira.blogspot.com/
 4. Site Whiplash - https://whiplash.net/materias/melhores/195761.html, https://whiplash.net/materias/melhores/170703.html
+
