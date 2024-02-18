@@ -69,6 +69,50 @@ def get_musicas_decada_lancamento(df_data):
     df_temp['Total_Musicas'] = df_temp.groupby('Decada_Lancamento_Album')['Decada_Lancamento_Album'].transform('count')
     return pd.DataFrame(df_temp.sort_values('Data_Lancamento_Album').groupby(['Decada_Lancamento_Album', 'Total_Musicas']).head(1))[['Decada_Lancamento_Album', 'Total_Musicas']]
 
+def get_musicas_media_posicao(df_data):
+    #Fórmula Si = wi * Ai + (1 - wi) * S, em que:
+    #wi = mi/mi+m_avg, sendo mi número total de aparições da música e m_avg média de todas as aparições de músicas
+    #Ai = média aritmética da posição da música
+    #S = média aritmética da posição de todas as músicas
+    #Si = média bayesiana da posição da música
+    #https://arpitbhayani.me/blogs/bayesian-average/
+    
+    df_distintas = df_data.copy().loc[(df_data['Artista'] != '???') & (df_data['Musica'].str.len() > 0) & (df_data['Observacao'] != 'repetida')]
+    
+    #Workaround devido a problema de index com NaN no pivot_table. Necessário preencher o que está NaN com um valor dummy para poder fazer o grouping
+    #https://github.com/pandas-dev/pandas/issues/3729
+    df_distintas['Observacao'] = df_distintas['Observacao'].fillna('dummy')
+    
+    df_totalizador = (df_distintas
+        .groupby(['Artista', 'Musica', 'Observacao'], dropna=False)
+        .size()
+        .reset_index(name='Total_Aparicoes'))
+
+    m_avg = df_totalizador['Total_Aparicoes'].mean()
+    
+    pivot_table = (pd.pivot_table(df_distintas, 
+                                  index=['Artista', 'Musica', 'Observacao'], 
+                                  columns='Ano', 
+                                  values='Posicao', 
+                                  margins=True, 
+                                  margins_name = 'Media_Posicao'))
+    
+    S = pivot_table.loc[('Media_Posicao', '', ''), 'Media_Posicao']
+
+    newdf = (df_distintas
+             .groupby(['Artista', 'Musica', 'Observacao'], dropna=False)
+             .size()
+             .reset_index(name='Total_Aparicoes'))
+    
+    merged_df = pd.merge(df_totalizador, pivot_table, on = ['Artista', 'Musica', 'Observacao'])
+
+    merged_df['Media_Bayesiana_Posicao'] = get_bayesian_average(merged_df['Total_Aparicoes'], m_avg, merged_df['Media_Posicao'], S)
+    
+    return merged_df.sort_values('Media_Bayesiana_Posicao')
+
+def get_bayesian_average(m, m_avg, A, S):
+    w = m/(m+m_avg)
+    return w * A + (1-w) * S
 
 def plotar_grafico_barra(df_data, xdata, ydata, xlabel, ylabel):
     rc = {'figure.figsize':(12,4.5),
@@ -117,6 +161,8 @@ str_total_artistas = "🧑‍🎤 " + locale.format_string("%d", total_artistas,
 str_total_albuns = "💿 " + locale.format_string("%d", total_albuns, grouping = True) + " álbum(s)/single(s)"
 
 print(str_total_musicas, str_total_musicas_distintas, str_total_artistas, str_total_albuns, "\n")
+
+get_musicas_media_posicao(df_listagem_filtrada)
 
 plotar_grafico_barra(get_acumulado_musicas_distintas(df_listagem_filtrada), "Anos", "Acumulado", "Anos", "Acumulado de Músicas distintas")
 
