@@ -29,6 +29,9 @@ def filtrar_posicoes(df_data, posicao_inicial, posicao_final):
     posicoes = list(range(posicao_inicial, posicao_final + 1))
     return df_data[df_data['Posicao'].isin(posicoes)]
 
+def filtrar_inconsistencias(df_data):
+    return df_data.loc[(df_data['Artista'] != '???') & (df_data['Musica'].str.len() > 0) & (df_data['Observacao'] != 'repetida')]
+
 def get_primeiro_ano(df_data):
     return df_data.sort_values(by='Ano').head(1)['Ano']
 
@@ -51,7 +54,7 @@ def get_total_musicas_distintas(df_data):
     return len(get_musicas_distintas(df_data))
 
 def get_musicas_distintas(df_data):
-    return df_data.loc[(df_data['Artista'] != '???') & (df_data['Musica'].str.len() > 0) & (df_data['Observacao'] != 'repetida')].drop_duplicates(subset=['Artista', 'Musica', 'Observacao'])
+    return filtrar_inconsistencias(df_data).drop_duplicates(subset=['Artista', 'Musica', 'Observacao'])
 
 def get_acumulado_musicas_distintas(df_data):
     periodos = np.unique(df_data.Ano_Periodo).tolist()
@@ -77,7 +80,7 @@ def get_musicas_media_posicao(df_data):
     #Si = média bayesiana da posição da música
     #https://arpitbhayani.me/blogs/bayesian-average/
     
-    df_distintas = df_data.copy().loc[(df_data['Artista'] != '???') & (df_data['Musica'].str.len() > 0) & (df_data['Observacao'] != 'repetida')]
+    df_distintas = filtrar_inconsistencias(df_data.copy())
     
     #Workaround devido a problema de index com NaN no pivot_table. Necessário preencher o que está NaN com um valor dummy para poder fazer o grouping
     #https://github.com/pandas-dev/pandas/issues/3729
@@ -116,8 +119,7 @@ def get_bayesian_average(m, m_avg, A, S):
 
 def get_artistas_top_n(df_data, top_n):
     df = filtrar_posicoes(df_data, 1, top_n)
-    df = (df
-          .loc[(df['Artista'] != '???') & (df['Musica'].str.len() > 0) & (df['Observacao'] != 'repetida')]
+    df = (filtrar_inconsistencias(df)
           .groupby('Artista')
           .size()
           .sort_values(ascending=False)
