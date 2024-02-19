@@ -126,6 +126,15 @@ def get_artistas_top_n(df_data, top_n):
           .reset_index(name='Total_Aparicoes'))
     return df
 
+def get_musicas_top_n(df_data, top_n):
+    df = filtrar_posicoes(df_data, 1, top_n)
+    df = (filtrar_inconsistencias(df)
+          .groupby('Musica')
+          .size()
+          .sort_values(ascending=False)
+          .reset_index(name='Total_Aparicoes'))
+    return df
+
 def plotar_grafico_barra(df_data, xdata, ydata, xlabel, ylabel):
     rc = {'figure.figsize':(12,4.5),
       'axes.facecolor':'#0e1117',
@@ -178,6 +187,9 @@ get_musicas_media_posicao(df_listagem_filtrada)
 
 get_artistas_top_n(df_listagem, 3)
 get_artistas_top_n(df_listagem, 10)
+
+get_musicas_top_n(df_listagem, 3)
+get_musicas_top_n(df_listagem, 10)
 
 plotar_grafico_barra(get_acumulado_musicas_distintas(df_listagem_filtrada), "Anos", "Acumulado", "Anos", "Acumulado de Músicas distintas")
 
