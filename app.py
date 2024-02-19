@@ -114,6 +114,16 @@ def get_bayesian_average(m, m_avg, A, S):
     w = m/(m+m_avg)
     return w * A + (1-w) * S
 
+def get_artistas_top_n(df_data, top_n):
+    df = filtrar_posicoes(df_data, 1, top_n)
+    df = (df
+          .loc[(df['Artista'] != '???') & (df['Musica'].str.len() > 0) & (df['Observacao'] != 'repetida')]
+          .groupby('Artista')
+          .size()
+          .sort_values(ascending=False)
+          .reset_index(name='Total_Aparicoes'))
+    return df
+
 def plotar_grafico_barra(df_data, xdata, ydata, xlabel, ylabel):
     rc = {'figure.figsize':(12,4.5),
       'axes.facecolor':'#0e1117',
@@ -163,6 +173,9 @@ str_total_albuns = "💿 " + locale.format_string("%d", total_albuns, grouping =
 print(str_total_musicas, str_total_musicas_distintas, str_total_artistas, str_total_albuns, "\n")
 
 get_musicas_media_posicao(df_listagem_filtrada)
+
+get_artistas_top_n(df_listagem, 3)
+get_artistas_top_n(df_listagem, 10)
 
 plotar_grafico_barra(get_acumulado_musicas_distintas(df_listagem_filtrada), "Anos", "Acumulado", "Anos", "Acumulado de Músicas distintas")
 
