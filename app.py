@@ -92,6 +92,14 @@ def get_musicas_decada_lancamento(df_data):
     df_temp['Total_Musicas'] = df_temp.groupby('Decada_Lancamento_Album')['Decada_Lancamento_Album'].transform('count')
     return pd.DataFrame(df_temp.sort_values('Data_Lancamento_Album').groupby(['Decada_Lancamento_Album', 'Total_Musicas']).head(1))[['Decada_Lancamento_Album', 'Total_Musicas']]
 
+def get_musicas_todos_anos(df_data):
+    df = filtrar_inconsistencias(df_data).copy()
+    df['Count'] = df.groupby(['Artista', 'Musica', 'Observacao'], dropna=False)['Musica'].transform('count')
+    df['Musica'] = df.apply(lambda row: row['Artista'] + ' - ' + row['Musica'], axis=1)
+    df = df.loc[df['Count'] == 24].sort_values(['Ano','Posicao'])
+
+    return pd.pivot(data=df, index='Musica', columns='Ano', values='Posicao')
+
 def get_musicas_media_posicao(df_data):
     #Fórmula Si = wi * Ai + (1 - wi) * S, em que:
     #wi = mi/mi+m_avg, sendo mi número total de aparições da música e m_avg média de todas as aparições de músicas
@@ -186,6 +194,12 @@ def plotar_grafico_barra(df_data, xdata, ydata, xlabel, ylabel):
                 rotation = 90,
                 textcoords = 'offset points')
     plt.show()
+    
+def plotar_mapa_calor(df_data):
+    plt.figure(figsize=(20,9.5))
+    plt.tick_params(axis='both', which='major', labelsize=10, labelbottom = True, bottom=True, top = True, labeltop=True)
+    sb.heatmap(df_data, cmap='viridis_r', annot=True, cbar=False, fmt='g')
+    plt.show()
 
 # App
 df_listagem_filtrada = filtrar_periodo(df_listagem, '00-01', '23-24')
@@ -216,6 +230,8 @@ info.get_musica_posicao(1)
 info.get_musica_posicao(500)
 info.get_top_artista()
 info.get_repetidas()
+
+plotar_mapa_calor(get_musicas_todos_anos(df_listagem))
 
 plotar_grafico_barra(get_acumulado_musicas_distintas(df_listagem_filtrada), "Anos", "Acumulado", "Anos", "Acumulado de Músicas distintas")
 
