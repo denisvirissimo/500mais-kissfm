@@ -7,6 +7,26 @@ import locale
 #Configuração
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
+class Info:
+    
+    def __init__(self, df_data, ano):
+        self.df = df_data[df_data['Ano'] == ano]
+        
+    def get_musica_posicao(self, posicao):
+        df_filtrado = self.df[self.df['Posicao'] == posicao]
+        return df_filtrado.Artista.values[0] + ' - ' + df_filtrado.Musica.values[0]
+    
+    def get_top_artista(self):
+        top_artista = self.df.groupby('Artista').size().reset_index(name='Count').sort_values(by='Count', ascending=False).head(1)
+        return top_artista.Artista.values[0] + ' (' + str(top_artista.Count.values[0]) + ')'
+    
+    def get_repetidas(self):
+        df_repetidas = self.df[self.df['Observacao'] == 'repetida'].groupby('Observacao').size().reset_index(name='Count')
+        if df_repetidas.empty:
+            return 'Não'
+        else:
+            return 'Sim (' + str(df_repetidas.Count.values[0]) + ')'
+
 def get_decada(ano):
     return 'Anos ' + str(ano)[2] + '0'
 
@@ -190,6 +210,12 @@ get_artistas_top_n(df_listagem, 10)
 
 get_musicas_top_n(df_listagem, 3)
 get_musicas_top_n(df_listagem, 10)
+
+info = Info(df_listagem, 2000)
+info.get_musica_posicao(1)
+info.get_musica_posicao(500)
+info.get_top_artista()
+info.get_repetidas()
 
 plotar_grafico_barra(get_acumulado_musicas_distintas(df_listagem_filtrada), "Anos", "Acumulado", "Anos", "Acumulado de Músicas distintas")
 
