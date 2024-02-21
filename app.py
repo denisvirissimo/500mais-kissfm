@@ -17,8 +17,16 @@ class Info:
         return df_filtrado.Artista.values[0] + ' - ' + df_filtrado.Musica.values[0]
     
     def get_top_artista(self):
-        top_artista = self.df.groupby('Artista').size().reset_index(name='Count').sort_values(by='Count', ascending=False).head(1)
-        return top_artista.Artista.values[0] + ' (' + str(top_artista.Count.values[0]) + ')'
+        top_artista = (self.df.groupby('Artista')
+                       .size()
+                       .reset_index(name='Count')
+                       .sort_values(by='Count', ascending=False))
+        top_artista = (top_artista[top_artista['Count'] == top_artista
+                                   .drop_duplicates(subset='Count')
+                                   .head(1)['Count']
+                                   .values[0]])
+        top_artista['Str'] = top_artista.Artista + ' (' + top_artista.Count.astype(str) + ')'
+        return ', '.join(top_artista.Str)
     
     def get_repetidas(self):
         df_repetidas = self.df[self.df['Observacao'] == 'repetida'].groupby('Observacao').size().reset_index(name='Count')
@@ -231,10 +239,10 @@ info.get_musica_posicao(500)
 info.get_top_artista()
 info.get_repetidas()
 
-plotar_mapa_calor(get_musicas_todos_anos(df_listagem))
-
 plotar_grafico_barra(get_acumulado_musicas_distintas(df_listagem_filtrada), "Anos", "Acumulado", "Anos", "Acumulado de Músicas distintas")
 
 plotar_grafico_barra(get_musicas_ano_lancamento(df_listagem_filtrada), "Data_Lancamento_Album", "Total_Musicas", "Anos", "Quantidade de Músicas distintas")
 
 plotar_grafico_barra(get_musicas_decada_lancamento(df_listagem_filtrada), "Decada_Lancamento_Album", "Total_Musicas", "Anos", "Quantidade de Músicas distintas")
+
+plotar_mapa_calor(get_musicas_todos_anos(df_listagem))
