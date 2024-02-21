@@ -28,6 +28,18 @@ class Info:
         top_artista['Str'] = top_artista.Artista + ' (' + top_artista.Count.astype(str) + ')'
         return ', '.join(top_artista.Str)
     
+    def get_top_album(self):
+        top_album = (self.df.groupby(['Album_Single', 'Artista'])
+                       .size()
+                       .reset_index(name='Count')
+                       .sort_values(by='Count', ascending=False))
+        top_album = (top_album[top_album['Count'] == top_album
+                                   .drop_duplicates(subset='Count')
+                                   .head(1)['Count']
+                                   .values[0]])
+        top_album['Str'] = top_album.Artista + ' - ' + top_album.Album_Single + ' (' + top_album.Count.astype(str) + ')'
+        return ', '.join(top_album.Str)
+    
     def get_repetidas(self):
         df_repetidas = self.df[self.df['Observacao'] == 'repetida'].groupby('Observacao').size().reset_index(name='Count')
         if df_repetidas.empty:
@@ -106,7 +118,7 @@ def get_musicas_todos_anos(df_data):
     df['Musica'] = df.apply(lambda row: row['Artista'] + ' - ' + row['Musica'], axis=1)
     df = df.loc[df['Count'] == 24].sort_values(['Ano','Posicao'])
 
-    return pd.pivot(data=df, index='Musica', columns='Ano', values='Posicao')
+    return pd.pivot(data=df, index='Musica', columns='Ano_Periodo', values='Posicao')
 
 def get_musicas_media_posicao(df_data):
     #Fórmula Si = wi * Ai + (1 - wi) * S, em que:
@@ -238,6 +250,7 @@ info.get_musica_posicao(1)
 info.get_musica_posicao(500)
 info.get_top_artista()
 info.get_repetidas()
+info.get_top_album()
 
 plotar_grafico_barra(get_acumulado_musicas_distintas(df_listagem_filtrada), "Anos", "Acumulado", "Anos", "Acumulado de Músicas distintas")
 
