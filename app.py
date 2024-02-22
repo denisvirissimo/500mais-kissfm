@@ -183,7 +183,24 @@ def get_musicas_top_n(df_data, top_n):
           .reset_index(name='Total_Aparicoes'))
     return df
 
-def plotar_grafico_barra(df_data, xdata, ydata, xlabel, ylabel):
+def get_analise_periodo(df_data, medida):
+    df =  filtrar_inconsistencias(df_data)
+    df = df.groupby(['Artista', 'Ano_Periodo'])['Musica'].count().reset_index()
+    match medida:
+        case 'Contagem':
+            return df.groupby('Ano_Periodo').sum().reset_index()
+        case 'Média':
+            return df.groupby('Ano_Periodo')['Musica'].mean().reset_index()
+        case 'Mediana':
+            return df.groupby('Ano_Periodo')['Musica'].median().reset_index()
+        case 'Mínimo':
+            return df.groupby('Ano_Periodo')['Musica'].min().reset_index()
+        case 'Máximo':
+            return df.groupby('Ano_Periodo')['Musica'].max().reset_index()
+        case default:
+            return df
+
+def plotar_grafico_barra(df_data, xdata, ydata, xlabel, ylabel, decimal=False, rotacao=0):
     rc = {'figure.figsize':(12,4.5),
       'axes.facecolor':'#0e1117',
       'axes.edgecolor': '#0e1117',
@@ -206,12 +223,16 @@ def plotar_grafico_barra(df_data, xdata, ydata, xlabel, ylabel):
     ax.set(xlabel = xlabel, ylabel = ylabel)
     plt.xticks(rotation=66,horizontalalignment="right")
     for p in ax.patches:
-        ax.annotate(format(str(int(p.get_height()))),
+        if decimal:
+            text = format(p.get_height(), '.2f')
+        else:
+            text = format(str(int(p.get_height())))
+        ax.annotate(text,
               (p.get_x() + p.get_width() / 2., p.get_height()),
                 ha = 'center',
                 va = 'center',
                 xytext = (0, 18),
-                rotation = 90,
+                rotation = rotacao,
                 textcoords = 'offset points')
     plt.show()
     
@@ -257,5 +278,7 @@ plotar_grafico_barra(get_acumulado_musicas_distintas(df_listagem_filtrada), "Ano
 plotar_grafico_barra(get_musicas_ano_lancamento(df_listagem_filtrada), "Data_Lancamento_Album", "Total_Musicas", "Anos", "Quantidade de Músicas distintas")
 
 plotar_grafico_barra(get_musicas_decada_lancamento(df_listagem_filtrada), "Decada_Lancamento_Album", "Total_Musicas", "Anos", "Quantidade de Músicas distintas")
+
+plotar_grafico_barra(get_analise_periodo(df_listagem_filtrada, "Média"), "Ano_Periodo", "Musica", "Anos", "Músicas por Artista", True)
 
 plotar_mapa_calor(get_musicas_todos_anos(df_listagem))
