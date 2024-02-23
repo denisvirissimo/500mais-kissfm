@@ -183,9 +183,9 @@ def get_musicas_top_n(df_data, top_n):
           .reset_index(name='Total_Aparicoes'))
     return df
 
-def get_analise_periodo(df_data, medida):
+def get_analise_periodo(df_data, medida, agregador):
     df =  filtrar_inconsistencias(df_data)
-    df = df.groupby(['Artista', 'Ano_Periodo'])['Musica'].count().reset_index()
+    df = df.groupby(agregador)['Musica'].count().reset_index()
     match medida:
         case 'Contagem':
             return df.groupby('Ano_Periodo').sum().reset_index()
@@ -279,6 +279,8 @@ plotar_grafico_barra(get_musicas_ano_lancamento(df_listagem_filtrada), "Data_Lan
 
 plotar_grafico_barra(get_musicas_decada_lancamento(df_listagem_filtrada), "Decada_Lancamento_Album", "Total_Musicas", "Anos", "Quantidade de Músicas distintas")
 
-plotar_grafico_barra(get_analise_periodo(df_listagem_filtrada, "Média"), "Ano_Periodo", "Musica", "Anos", "Músicas por Artista", True)
+plotar_grafico_barra(get_analise_periodo(df_listagem_filtrada, "Média", ['Artista', 'Ano_Periodo']), "Ano_Periodo", "Musica", "Anos", "Músicas por Artista", True)
+
+plotar_grafico_barra(get_analise_periodo(df_listagem_filtrada, 'Média', ['Album_Single', 'Ano_Periodo']), "Ano_Periodo", "Musica", "Anos", "Álbuns por Artista", True)
 
 plotar_mapa_calor(get_musicas_todos_anos(df_listagem))
