@@ -258,8 +258,8 @@ row0_spacer1, row0_1, row0_spacer2, row0_2, row0_spacer3 = st.columns((.1, 2.3, 
 with row0_1:
     st.title('As 500+ da Kiss FM')
 
-row3_spacer1, row3_1, row3_spacer2 = st.columns((.1, 3.2, .1))
-with row3_1:
+row2_spacer1, row2_1, row2_spacer2 = st.columns((.1, 3.2, .1))
+with row2_1:
     st.markdown("Esse é um projeto de Ciência de Dados com o objetivo de analisar a listagem das 500+ da rádio Kiss FM. A ideia surgiu a partir da curiosidade de saber qual seria a música número 1 de todas as votações até então, e acabou levando ao desenvolvimento de várias outras análises interessantes.")
     st.markdown("Todo o detalhamento do projeto, inclusive o tratamento de dados e algumas curiosidades, está disponível neste [repositório do GitHub](https://github.com/denisvirissimo/500mais-kissfm)")
 
@@ -276,7 +276,7 @@ df_listagem_filtrada = filtrar_periodo(df_listagem, periodo_inicial, periodo_fin
 #Filtro Posições
 posicoes = np.unique(df_listagem.Posicao).tolist()
 posicao_inicial, posicao_final = st.sidebar.select_slider('Selecione as posições das 500+ para filtrar as análises', posicoes, value=[min(posicoes), max(posicoes)])
-df_listagem_filtrada = filtrar_posicoes(df_listagem_filtrada, posicao_inicial, posicao_final)   
+df_listagem_filtrada = filtrar_posicoes(df_listagem_filtrada, posicao_inicial, posicao_final)
 
 total_musicas = df_listagem_filtrada.Id.nunique()
 total_musicas_distintas = get_total_musicas_distintas(df_listagem_filtrada)
@@ -296,30 +296,52 @@ with row3_1:
         show_data(df_listagem)
 st.text('')
 
-row6_spacer1, row6_1, row6_spacer2 = st.columns((.2, 7.1, .2))
-with row6_1:
+row4_spacer1, row4_1, row4_spacer2 = st.columns((.2, 7.1, .2))
+with row4_1:
     st.subheader("Exibindo os seguintes dados a partir dos filtros:")
 
-row2_spacer1, row2_1, row2_spacer2, row2_2, row2_spacer3, row2_3, row2_spacer4, row2_4, row2_spacer5   = st.columns((.2, 1.6, .2, 1.6, .2, 1.6, .2, 1.6, .2))
-with row2_1:
+row5_spacer1, row5_1, row5_spacer2, row5_2, row5_spacer3, row5_3, row5_spacer4, row5_4, row5_spacer5   = st.columns((.2, 1.6, .2, 1.6, .2, 1.6, .2, 1.6, .2))
+with row5_1:
     st.markdown(str_total_musicas)
-with row2_2:
+with row5_2:
     st.markdown(str_total_musicas_distintas)
-with row2_3:
+with row5_3:
     st.markdown(str_total_artistas)
-with row2_4:
+with row5_4:
     st.markdown(str_total_albuns)
+
+st.divider()
+
+row6_spacer1, row6_1, row6_spacer2, row6_2, row6_spacer3 = st.columns((.2, 3.1, .2, 3.1, .2))
+with row6_1:
+    st.subheader('Artistas presentes no Top 3')
+with row6_2:
+    st.subheader('Artistas presentes no Top 10')
+
+row7_spacer1, row7_1, row7_spacer2, row7_2, row7_spacer3 = st.columns((.2, 3.1, .2, 3.1, .2))
+with row7_1:
+    st.dataframe(data=get_artistas_top_n(df_listagem_filtrada, 3), hide_index=True, use_container_width=True, height=400, column_config={"Artista":"Artista", "Total_Aparicoes": "Número Total de Aparições"})
+with row7_2:
+    st.dataframe(data=get_artistas_top_n(df_listagem_filtrada, 10), hide_index=True, use_container_width=True, height=400, column_config={"Artista":"Artista", "Total_Aparicoes": "Número Total de Aparições"})
+
+st.divider()
+
+row8_spacer1, row8_1, row8_spacer2, row8_2, row8_spacer3 = st.columns((.2, 3.1, .2, 3.1, .2))
+with row8_1:
+    st.subheader('Músicas presentes no Top 3')
+with row8_2:
+    st.subheader('Músicas presentes no Top 10')
+
+row9_spacer1, row9_1, row9_spacer2, row9_2, row9_spacer3 = st.columns((.2, 3.1, .2, 3.1, .2))
+with row9_1:
+    st.dataframe(data=get_musicas_top_n(df_listagem_filtrada, 3), hide_index=True, use_container_width=True, height=400, column_config={"Musica":"Música", "Total_Aparicoes": "Número Total de Aparições"})
+with row9_2:
+    st.dataframe(data=get_musicas_top_n(df_listagem_filtrada, 10), hide_index=True, use_container_width=True, height=400, column_config={"Musica":"Música", "Total_Aparicoes": "Número Total de Aparições"})
 
 '''
 print(str_total_musicas, str_total_musicas_distintas, str_total_artistas, str_total_albuns, "\n")
 
 get_musicas_media_posicao(df_listagem_filtrada)
-
-get_artistas_top_n(df_listagem, 3)
-get_artistas_top_n(df_listagem, 10)
-
-get_musicas_top_n(df_listagem, 3)
-get_musicas_top_n(df_listagem, 10)
 
 info = Info(df_listagem, 2000)
 info.get_musica_posicao(1)
