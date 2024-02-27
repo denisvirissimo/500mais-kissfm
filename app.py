@@ -270,18 +270,6 @@ posicoes = np.unique(df_listagem.Posicao).tolist()
 posicao_inicial, posicao_final = st.sidebar.select_slider('Selecione as posições das 500+ para filtrar as análises', posicoes, value=[min(posicoes), max(posicoes)])
 df_listagem_filtrada = filtrar_posicoes(df_listagem_filtrada, posicao_inicial, posicao_final)   
 
-row3_spacer1, row3_1, row3_spacer2 = st.columns((.2, 7.1, .2))
-with row3_1:
-    st.markdown("")
-    see_data = st.expander('Clique aqui para ver a listagem completa')
-    with see_data:
-        st.dataframe(data=df_listagem.reset_index(drop=True).style.format(thousands=None), hide_index=True)
-st.text('')
-
-'''
-df_listagem_filtrada = filtrar_periodo(df_listagem, '00-01', '23-24')
-df_listagem_filtrada = filtrar_posicoes(df_listagem_filtrada, 1, 500)
-
 total_musicas = df_listagem_filtrada.Id.nunique()
 total_musicas_distintas = get_total_musicas_distintas(df_listagem_filtrada)
 total_artistas = len(np.unique(df_listagem_filtrada.Artista.dropna()).tolist())
@@ -292,6 +280,29 @@ str_total_musicas_distintas = "🎵 " + locale.format_string("%d", total_musicas
 str_total_artistas = "🧑‍🎤 " + locale.format_string("%d", total_artistas, grouping = True) + " artista(s)"
 str_total_albuns = "💿 " + locale.format_string("%d", total_albuns, grouping = True) + " álbum(s)/single(s)"
 
+row3_spacer1, row3_1, row3_spacer2 = st.columns((.2, 7.1, .2))
+with row3_1:
+    st.markdown("")
+    see_data = st.expander('Clique aqui para ver a listagem completa')
+    with see_data:
+        st.dataframe(data=df_listagem.reset_index(drop=True).style.format(thousands=None), hide_index=True)
+st.text('')
+
+row6_spacer1, row6_1, row6_spacer2 = st.columns((.2, 7.1, .2))
+with row6_1:
+    st.subheader("Exibindo os seguintes dados a partir dos filtros:")
+
+row2_spacer1, row2_1, row2_spacer2, row2_2, row2_spacer3, row2_3, row2_spacer4, row2_4, row2_spacer5   = st.columns((.2, 1.6, .2, 1.6, .2, 1.6, .2, 1.6, .2))
+with row2_1:
+    st.markdown(str_total_musicas)
+with row2_2:
+    st.markdown(str_total_musicas_distintas)
+with row2_3:
+    st.markdown(str_total_artistas)
+with row2_4:
+    st.markdown(str_total_albuns)
+
+'''
 print(str_total_musicas, str_total_musicas_distintas, str_total_artistas, str_total_albuns, "\n")
 
 get_musicas_media_posicao(df_listagem_filtrada)
