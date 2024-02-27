@@ -48,17 +48,20 @@ class Info:
         else:
             return 'Sim (' + str(df_repetidas.Count.values[0]) + ')'
 
+#Inicialização
+@st.cache_data
+def load_data(dataset):
+    df_data = pd.read_csv(dataset)
+    df_data['Id'] = range(1, len(df_data) + 1)
+    df_data['Ano_Periodo'] = df_data.Ano.astype(str).str[-2:] + "-" + (df_data.Ano +1).astype(str).str[-2:]
+    df_data['Data_Lancamento_Album'] = pd.to_datetime(df_data['Data_Lancamento_Album'])
+    df_data['Decada_Lancamento_Album'] = df_data['Data_Lancamento_Album'].dt.year.apply(get_decada)
+    return df_data
+
+#Funções
 def get_decada(ano):
     return 'Anos ' + str(ano)[2] + '0'
 
-#Inicialização
-df_listagem = pd.read_csv("./data/500+.csv")
-df_listagem['Id'] = range(1, len(df_listagem) + 1)
-df_listagem['Ano_Periodo'] = df_listagem.Ano.astype(str).str[-2:] + "-" + (df_listagem.Ano +1).astype(str).str[-2:]
-df_listagem['Data_Lancamento_Album'] = pd.to_datetime(df_listagem['Data_Lancamento_Album'])
-df_listagem['Decada_Lancamento_Album'] = df_listagem['Data_Lancamento_Album'].dt.year.apply(get_decada)
-
-#Funções
 def filtrar_periodo(df_data, periodo_inicial, periodo_final):
     periodos = np.unique(df_data.Ano_Periodo).tolist()
     indice_inicial = periodos.index(periodo_inicial)
@@ -243,8 +246,13 @@ def plotar_mapa_calor(df_data):
     sb.heatmap(df_data, cmap='viridis_r', annot=True, cbar=False, fmt='g')
     plt.show()
 
+@st.cache_data
+def show_data(df_data):
+    st.dataframe(data=df_data.reset_index(drop=True).style.format(thousands=None), hide_index=True)
+
 #App
 st.set_page_config(layout="wide")
+df_listagem = load_data("./data/500+.csv")
 
 row0_spacer1, row0_1, row0_spacer2, row0_2, row0_spacer3 = st.columns((.1, 2.3, .1, 1.3, .1))
 with row0_1:
@@ -285,7 +293,7 @@ with row3_1:
     st.markdown("")
     see_data = st.expander('Clique aqui para ver a listagem completa')
     with see_data:
-        st.dataframe(data=df_listagem.reset_index(drop=True).style.format(thousands=None), hide_index=True)
+        show_data(df_listagem)
 st.text('')
 
 row6_spacer1, row6_1, row6_spacer2 = st.columns((.2, 7.1, .2))
