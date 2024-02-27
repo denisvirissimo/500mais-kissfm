@@ -3,19 +3,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sb
 import locale
+import streamlit as st
 
 #Configuração
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
 class Info:
-    
+
     def __init__(self, df_data, ano):
         self.df = df_data[df_data['Ano'] == ano]
-        
+
     def get_musica_posicao(self, posicao):
         df_filtrado = self.df[self.df['Posicao'] == posicao]
         return df_filtrado.Artista.values[0] + ' - ' + df_filtrado.Musica.values[0]
-    
+
     def get_top_artista(self):
         top_artista = (self.df.groupby('Artista')
                        .size()
@@ -27,7 +28,7 @@ class Info:
                                    .values[0]])
         top_artista['Str'] = top_artista.Artista + ' (' + top_artista.Count.astype(str) + ')'
         return ', '.join(top_artista.Str)
-    
+
     def get_top_album(self):
         top_album = (self.df.groupby(['Album_Single', 'Artista'])
                        .size()
@@ -39,7 +40,7 @@ class Info:
                                    .values[0]])
         top_album['Str'] = top_album.Artista + ' - ' + top_album.Album_Single + ' (' + top_album.Count.astype(str) + ')'
         return ', '.join(top_album.Str)
-    
+
     def get_repetidas(self):
         df_repetidas = self.df[self.df['Observacao'] == 'repetida'].groupby('Observacao').size().reset_index(name='Count')
         if df_repetidas.empty:
@@ -127,38 +128,38 @@ def get_musicas_media_posicao(df_data):
     #S = média aritmética da posição de todas as músicas
     #Si = média bayesiana da posição da música
     #https://arpitbhayani.me/blogs/bayesian-average/
-    
+
     df_distintas = filtrar_inconsistencias(df_data.copy())
-    
+
     #Workaround devido a problema de index com NaN no pivot_table. Necessário preencher o que está NaN com um valor dummy para poder fazer o grouping
     #https://github.com/pandas-dev/pandas/issues/3729
     df_distintas['Observacao'] = df_distintas['Observacao'].fillna('dummy')
-    
+
     df_totalizador = (df_distintas
         .groupby(['Artista', 'Musica', 'Observacao'], dropna=False)
         .size()
         .reset_index(name='Total_Aparicoes'))
 
     m_avg = df_totalizador['Total_Aparicoes'].mean()
-    
-    pivot_table = (pd.pivot_table(df_distintas, 
-                                  index=['Artista', 'Musica', 'Observacao'], 
-                                  columns='Ano', 
-                                  values='Posicao', 
-                                  margins=True, 
+
+    pivot_table = (pd.pivot_table(df_distintas,
+                                  index=['Artista', 'Musica', 'Observacao'],
+                                  columns='Ano',
+                                  values='Posicao',
+                                  margins=True,
                                   margins_name = 'Media_Posicao'))
-    
+
     S = pivot_table.loc[('Media_Posicao', '', ''), 'Media_Posicao']
 
     newdf = (df_distintas
              .groupby(['Artista', 'Musica', 'Observacao'], dropna=False)
              .size()
              .reset_index(name='Total_Aparicoes'))
-    
+
     merged_df = pd.merge(df_totalizador, pivot_table, on = ['Artista', 'Musica', 'Observacao'])
 
     merged_df['Media_Bayesiana_Posicao'] = get_bayesian_average(merged_df['Total_Aparicoes'], m_avg, merged_df['Media_Posicao'], S)
-    
+
     return merged_df.sort_values('Media_Bayesiana_Posicao')
 
 def get_bayesian_average(m, m_avg, A, S):
@@ -235,14 +236,49 @@ def plotar_grafico_barra(df_data, xdata, ydata, xlabel, ylabel, decimal=False, r
                 rotation = rotacao,
                 textcoords = 'offset points')
     plt.show()
-    
+
 def plotar_mapa_calor(df_data):
     plt.figure(figsize=(20,9.5))
     plt.tick_params(axis='both', which='major', labelsize=10, labelbottom = True, bottom=True, top = True, labeltop=True)
     sb.heatmap(df_data, cmap='viridis_r', annot=True, cbar=False, fmt='g')
     plt.show()
 
-# App
+#App
+st.set_page_config(layout="wide")
+
+row0_spacer1, row0_1, row0_spacer2, row0_2, row0_spacer3 = st.columns((.1, 2.3, .1, 1.3, .1))
+with row0_1:
+    st.title('As 500+ da Kiss FM')
+
+row3_spacer1, row3_1, row3_spacer2 = st.columns((.1, 3.2, .1))
+with row3_1:
+    st.markdown("Esse é um projeto de Ciência de Dados com o objetivo de analisar a listagem das 500+ da rádio Kiss FM. A ideia surgiu a partir da curiosidade de saber qual seria a música número 1 de todas as votações até então, e acabou levando ao desenvolvimento de várias outras análises interessantes.")
+    st.markdown("Todo o detalhamento do projeto, inclusive o tratamento de dados e algumas curiosidades, está disponível neste [repositório do GitHub](https://github.com/denisvirissimo/500mais-kissfm)")
+
+st.sidebar.text('Filtros')
+st.sidebar.text('')
+st.sidebar.text('')
+
+#Filtro Períodos
+st.sidebar.markdown("Selecione o período de anos")
+periodos = np.array(np.unique(df_listagem.Ano_Periodo).tolist())
+periodo_inicial, periodo_final = st.sidebar.select_slider('Selecione os anos para filtrar as análises', periodos, value = [get_primeiro_ano_periodo(df_listagem).values[0], get_ultimo_ano_periodo(df_listagem).values[0]])
+df_listagem_filtrada = filtrar_periodo(df_listagem, periodo_inicial, periodo_final)
+
+#Filtro Posições
+posicoes = np.unique(df_listagem.Posicao).tolist()
+posicao_inicial, posicao_final = st.sidebar.select_slider('Selecione as posições das 500+ para filtrar as análises', posicoes, value=[min(posicoes), max(posicoes)])
+df_listagem_filtrada = filtrar_posicoes(df_listagem_filtrada, posicao_inicial, posicao_final)   
+
+row3_spacer1, row3_1, row3_spacer2 = st.columns((.2, 7.1, .2))
+with row3_1:
+    st.markdown("")
+    see_data = st.expander('Clique aqui para ver a listagem completa')
+    with see_data:
+        st.dataframe(data=df_listagem.reset_index(drop=True).style.format(thousands=None), hide_index=True)
+st.text('')
+
+'''
 df_listagem_filtrada = filtrar_periodo(df_listagem, '00-01', '23-24')
 df_listagem_filtrada = filtrar_posicoes(df_listagem_filtrada, 1, 500)
 
@@ -284,3 +320,4 @@ plotar_grafico_barra(get_analise_periodo(df_listagem_filtrada, "Média", ['Artis
 plotar_grafico_barra(get_analise_periodo(df_listagem_filtrada, 'Média', ['Album_Single', 'Ano_Periodo']), "Ano_Periodo", "Musica", "Anos", "Álbuns por Artista", True)
 
 plotar_mapa_calor(get_musicas_todos_anos(df_listagem))
+'''
