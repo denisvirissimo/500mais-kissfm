@@ -181,7 +181,7 @@ def get_artistas_top_n(df_data, top_n):
 def get_musicas_top_n(df_data, top_n):
     df = filtrar_posicoes(df_data, 1, top_n)
     df = (filtrar_inconsistencias(df)
-          .groupby('Musica')
+          .groupby(['Artista', 'Musica'])
           .size()
           .sort_values(ascending=False)
           .reset_index(name='Total_Aparicoes'))
@@ -300,7 +300,7 @@ row4_spacer1, row4_1, row4_spacer2 = st.columns((.2, 7.1, .2))
 with row4_1:
     st.subheader("Exibindo os seguintes dados a partir dos filtros:")
 
-row5_spacer1, row5_1, row5_spacer2, row5_2, row5_spacer3, row5_3, row5_spacer4, row5_4, row5_spacer5   = st.columns((.2, 1.6, .2, 1.6, .2, 1.6, .2, 1.6, .2))
+row5_spacer1, row5_1, row5_spacer2, row5_2, row5_spacer3, row5_3, row5_spacer4, row5_4, row5_spacer5 = st.columns((.2, 1.6, .2, 1.6, .2, 1.6, .2, 1.6, .2))
 with row5_1:
     st.markdown(str_total_musicas)
 with row5_2:
@@ -311,6 +311,16 @@ with row5_4:
     st.markdown(str_total_albuns)
 
 st.divider()
+
+row4_spacer1, row4_1, row4_spacer2 = st.columns((.2, 7.1, .2))
+
+with row4_1:
+    st.subheader('Evolução de músicas distintas ao longo dos anos')
+    df = get_acumulado_musicas_distintas(df_listagem_filtrada)
+    fig = px.bar(df, x='Anos', y='Acumulado', text_auto=True)
+    fig.update_layout(xaxis_type='category', yaxis_title='Acumulado de Músicas distintas')
+    fig.update_traces(marker_color='#C50B11')
+    st.plotly_chart(fig, use_container_width=True)
 
 row6_spacer1, row6_1, row6_spacer2, row6_2, row6_spacer3 = st.columns((.2, 3.1, .2, 3.1, .2))
 with row6_1:
@@ -349,8 +359,6 @@ info.get_musica_posicao(500)
 info.get_top_artista()
 info.get_repetidas()
 info.get_top_album()
-
-plotar_grafico_barra(get_acumulado_musicas_distintas(df_listagem_filtrada), "Anos", "Acumulado", "Anos", "Acumulado de Músicas distintas")
 
 plotar_grafico_barra(get_musicas_ano_lancamento(df_listagem_filtrada), "Data_Lancamento_Album", "Total_Musicas", "Anos", "Quantidade de Músicas distintas")
 
