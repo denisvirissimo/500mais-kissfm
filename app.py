@@ -204,41 +204,11 @@ def get_analise_periodo(df_data, medida, agregador):
         case default:
             return df
 
-def plotar_grafico_barra(df_data, xdata, ydata, xlabel, ylabel, decimal=False, rotacao=0):
-    rc = {'figure.figsize':(12,4.5),
-      'axes.facecolor':'#0e1117',
-      'axes.edgecolor': '#0e1117',
-      'axes.labelcolor': 'white',
-      'figure.facecolor': '#0e1117',
-      'patch.edgecolor': '#0e1117',
-      'text.color': 'white',
-      'xtick.color': 'white',
-      'ytick.color': 'white',
-      'grid.color': 'grey',
-      'font.size' : 8,
-      'axes.labelsize': 12,
-      'xtick.labelsize': 8,
-      'ytick.labelsize': 12}
-
-    plt.rcParams.update(rc)
-    fig, ax = plt.subplots()
-
-    ax = sb.barplot(x=xdata, y=ydata, data=df_data, color = "#b80606")
-    ax.set(xlabel = xlabel, ylabel = ylabel)
-    plt.xticks(rotation=66,horizontalalignment="right")
-    for p in ax.patches:
-        if decimal:
-            text = format(p.get_height(), '.2f')
-        else:
-            text = format(str(int(p.get_height())))
-        ax.annotate(text,
-              (p.get_x() + p.get_width() / 2., p.get_height()),
-                ha = 'center',
-                va = 'center',
-                xytext = (0, 18),
-                rotation = rotacao,
-                textcoords = 'offset points')
-    plt.show()
+def plotar_grafico_barra(df_data, xdata, ydata, xlabel, ylabel):
+    fig = px.bar(df_data, x=xdata, y=ydata, text_auto=True)
+    fig.update_layout(xaxis_type='category', xaxis_title = xlabel, yaxis_title=ylabel)
+    fig.update_traces(marker_color='#C50B11')
+    st.plotly_chart(fig, use_container_width=True)
 
 def plotar_mapa_calor(df_data):
     plt.figure(figsize=(20,9.5))
@@ -316,11 +286,8 @@ row4_spacer1, row4_1, row4_spacer2 = st.columns((.2, 7.1, .2))
 
 with row4_1:
     st.subheader('Evolução de músicas distintas ao longo dos anos')
-    df = get_acumulado_musicas_distintas(df_listagem_filtrada)
-    fig = px.bar(df, x='Anos', y='Acumulado', text_auto=True)
-    fig.update_layout(xaxis_type='category', yaxis_title='Acumulado de Músicas distintas')
-    fig.update_traces(marker_color='#C50B11')
-    st.plotly_chart(fig, use_container_width=True)
+    plotar_grafico_barra(get_acumulado_musicas_distintas(df_listagem_filtrada), "Anos", "Acumulado", "Anos", "Acumulado de Músicas distintas")
+
 
 row6_spacer1, row6_1, row6_spacer2, row6_2, row6_spacer3 = st.columns((.2, 3.1, .2, 3.1, .2))
 with row6_1:
@@ -348,6 +315,15 @@ with row9_1:
 with row9_2:
     st.dataframe(data=get_musicas_top_n(df_listagem_filtrada, 10), hide_index=True, use_container_width=True, height=400, column_config={"Musica":"Música", "Total_Aparicoes": "Número Total de Aparições"})
 
+st.divider()
+
+row4_spacer1, row4_1, row4_spacer2 = st.columns((.2, 7.1, .2))
+
+with row4_1:
+    st.subheader('Músicas distintas por Ano')
+    plotar_grafico_barra(get_musicas_ano_lancamento(df_listagem_filtrada), "Data_Lancamento_Album", "Total_Musicas", "Anos", "Quantidade de Músicas distintas")
+    st.subheader('Músicas distintas por Década')
+    plotar_grafico_barra(get_musicas_decada_lancamento(df_listagem_filtrada), "Decada_Lancamento_Album", "Total_Musicas", "Décadas", "Quantidade de Músicas distintas")
 '''
 print(str_total_musicas, str_total_musicas_distintas, str_total_artistas, str_total_albuns, "\n")
 
@@ -359,10 +335,6 @@ info.get_musica_posicao(500)
 info.get_top_artista()
 info.get_repetidas()
 info.get_top_album()
-
-plotar_grafico_barra(get_musicas_ano_lancamento(df_listagem_filtrada), "Data_Lancamento_Album", "Total_Musicas", "Anos", "Quantidade de Músicas distintas")
-
-plotar_grafico_barra(get_musicas_decada_lancamento(df_listagem_filtrada), "Decada_Lancamento_Album", "Total_Musicas", "Décadas", "Quantidade de Músicas distintas")
 
 plotar_grafico_barra(get_analise_periodo(df_listagem_filtrada, "Média", ['Artista', 'Ano_Periodo']), "Ano_Periodo", "Musica", "Anos", "Músicas por Artista", True)
 
