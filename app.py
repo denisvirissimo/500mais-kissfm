@@ -211,10 +211,34 @@ def plotar_grafico_barra(df_data, xdata, ydata, xlabel, ylabel):
     st.plotly_chart(fig, use_container_width=True)
 
 def plotar_mapa_calor(df_data):
-    plt.figure(figsize=(20,9.5))
-    plt.tick_params(axis='both', which='major', labelsize=10, labelbottom = True, bottom=True, top = True, labeltop=True)
-    sb.heatmap(df_data, cmap='viridis_r', annot=True, cbar=False, fmt='g')
-    plt.show()
+    fig = go.Figure(data=go.Heatmap(
+                        z=df_data,
+                        x=df_data.columns,
+                        y=df_data.index,
+                        text=df_data,
+                        colorscale='viridis',
+                        reversescale=True,
+                        name="",
+                        hovertemplate='Ano: %{x}<br>Música: %{y}<br>Posição: %{z}',
+                        texttemplate="%{text}"))
+
+    fig.update_layout(xaxis_type='category', 
+                  xaxis_title = "Anos", 
+                  yaxis_title="Músicas", 
+                  height=55*len(df_data.index), 
+                  dragmode=False, 
+                  clickmode='none', 
+                  showlegend=False)
+
+    fig.update_yaxes(tickvals=df_data.index, ticktext=[label + '  ' for label in df_data.index])
+    fig['layout']['yaxis']['autorange'] = "reversed"
+
+
+    config = {'scrollZoom': False, 
+          'modeBarButtonsToRemove': [ 
+              'zoom', 'pan', 'select', 'zoomIn', 'zoomOut', 'autoScale', 'resetScale']}
+    
+    st.plotly_chart(fig, use_container_width=True, config = config)
 
 @st.cache_data
 def show_data(df_data):
@@ -324,9 +348,11 @@ with row4_1:
     plotar_grafico_barra(get_musicas_ano_lancamento(df_listagem_filtrada), "Data_Lancamento_Album", "Total_Musicas", "Anos", "Quantidade de Músicas distintas")
     st.subheader('Músicas distintas por Década')
     plotar_grafico_barra(get_musicas_decada_lancamento(df_listagem_filtrada), "Decada_Lancamento_Album", "Total_Musicas", "Décadas", "Quantidade de Músicas distintas")
-'''
-print(str_total_musicas, str_total_musicas_distintas, str_total_artistas, str_total_albuns, "\n")
+    st.subheader('Mapa de calor de músicas presentes em todas as edições')
+    plotar_mapa_calor(get_musicas_todos_anos(df_listagem))
 
+
+'''
 get_musicas_media_posicao(df_listagem_filtrada)
 
 info = Info(df_listagem, 2000)
@@ -339,6 +365,4 @@ info.get_top_album()
 plotar_grafico_barra(get_analise_periodo(df_listagem_filtrada, "Média", ['Artista', 'Ano_Periodo']), "Ano_Periodo", "Musica", "Anos", "Músicas por Artista", True)
 
 plotar_grafico_barra(get_analise_periodo(df_listagem_filtrada, 'Média', ['Album_Single', 'Ano_Periodo']), "Ano_Periodo", "Musica", "Anos", "Álbuns por Artista", True)
-
-plotar_mapa_calor(get_musicas_todos_anos(df_listagem))
 '''
