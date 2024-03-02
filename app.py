@@ -209,10 +209,12 @@ def get_analise_periodo(df_data, medida, agregador):
 
     return np.around(df,2)
 
-def plotar_grafico_barra(df_data, xdata, ydata, xlabel, ylabel):
+def plotar_grafico_barra(df_data, xdata, ydata, xlabel, ylabel, x_diagonal=False):
     fig = px.bar(df_data, x=xdata, y=ydata, text_auto=True)
     fig.update_layout(xaxis_type='category', xaxis_title = xlabel, yaxis_title=ylabel)
-    fig.update_traces(marker_color='#C50B11')
+    fig.update_traces(marker_color='#C50B11', hovertemplate=xlabel + ": %{x}<br>" + ylabel + ": %{y}", textangle=0)
+    if x_diagonal:
+        fig.update_xaxes(tickangle=-45)
     st.plotly_chart(fig, use_container_width=True)
 
 def plotar_mapa_calor(df_data):
@@ -341,7 +343,7 @@ with col2:
     st.divider()
 
     st.subheader('Músicas distintas por Ano')
-    plotar_grafico_barra(get_musicas_ano_lancamento(df_listagem_filtrada), "Data_Lancamento_Album", "Total_Musicas", "Anos", "Quantidade de Músicas distintas")
+    plotar_grafico_barra(get_musicas_ano_lancamento(df_listagem_filtrada), "Data_Lancamento_Album", "Total_Musicas", "Anos", "Quantidade de Músicas distintas", True)
 
     st.divider()
 
