@@ -187,6 +187,11 @@ def get_musicas_top_n(df_data, top_n):
           .reset_index(name='Total_Aparicoes'))
     return df
 
+def get_top_n_todas_edicoes(df_data, top_n):
+    df = get_musicas_media_posicao(df_data).loc[:,['Artista', 'Musica']]
+    df['Posicao'] = range(1, len(df) + 1)
+    return df[['Posicao', 'Artista', 'Musica']].head(top_n).set_index('Posicao')
+
 def get_analise_periodo(df_data, medida, agregador):
     df =  filtrar_inconsistencias(df_data)
     df = df.groupby(agregador)['Musica'].count().reset_index(name='Contagem')
@@ -366,14 +371,18 @@ with row10_1:
     aspecto_edicao_selecionado = st.selectbox ("Escolha o aspecto", list(list_aspectos.keys()), key = 'aspecto_edicao')
     medida_edicao_selecionada = st.selectbox ("Escolha a medida", medidas, key = 'medida_edicao')
 with row10_2:
-    plotar_grafico_barra(get_analise_periodo(df_listagem_filtrada, medida_edicao_selecionada, list_aspectos[aspecto_edicao_selecionado]), 
-                        "Ano_Periodo", 
-                        medida_edicao_selecionada, 
-                        "Anos", 
+    plotar_grafico_barra(get_analise_periodo(df_listagem_filtrada, medida_edicao_selecionada, list_aspectos[aspecto_edicao_selecionado]),
+                        "Ano_Periodo",
+                        medida_edicao_selecionada,
+                        "Anos",
                         medida_edicao_selecionada + ' de ' + aspecto_edicao_selecionado)
 
+st.divider()
+
+st.subheader('Top 10 de todas as edições')
+st.table(get_top_n_todas_edicoes(df_listagem, 10))
+
 '''
-get_musicas_media_posicao(df_listagem_filtrada)
 
 info = Info(df_listagem, 2000)
 info.get_musica_posicao(1)
