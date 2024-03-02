@@ -189,20 +189,22 @@ def get_musicas_top_n(df_data, top_n):
 
 def get_analise_periodo(df_data, medida, agregador):
     df =  filtrar_inconsistencias(df_data)
-    df = df.groupby(agregador)['Musica'].count().reset_index()
+    df = df.groupby(agregador)['Musica'].count().reset_index(name='Contagem')
     match medida:
         case 'Contagem':
-            return df.groupby('Ano_Periodo').sum().reset_index()
+            df = df.groupby('Ano_Periodo').sum().reset_index()
         case 'Média':
-            return df.groupby('Ano_Periodo')['Musica'].mean().reset_index()
+            df = df.groupby('Ano_Periodo')['Contagem'].mean().reset_index(name=medida)
         case 'Mediana':
-            return df.groupby('Ano_Periodo')['Musica'].median().reset_index()
+            df = df.groupby('Ano_Periodo')['Contagem'].median().reset_index(name=medida)
         case 'Mínimo':
-            return df.groupby('Ano_Periodo')['Musica'].min().reset_index()
+            df = df.groupby('Ano_Periodo')['Contagem'].min().reset_index(name=medida)
         case 'Máximo':
-            return df.groupby('Ano_Periodo')['Musica'].max().reset_index()
+            df = df.groupby('Ano_Periodo')['Contagem'].max().reset_index(name=medida)
         case default:
-            return df
+            df = df
+
+    return np.around(df,2)
 
 def plotar_grafico_barra(df_data, xdata, ydata, xlabel, ylabel):
     fig = px.bar(df_data, x=xdata, y=ydata, text_auto=True)
@@ -222,22 +224,22 @@ def plotar_mapa_calor(df_data):
                         hovertemplate='Ano: %{x}<br>Música: %{y}<br>Posição: %{z}',
                         texttemplate="%{text}"))
 
-    fig.update_layout(xaxis_type='category', 
-                  xaxis_title = "Anos", 
-                  yaxis_title="Músicas", 
-                  height=55*len(df_data.index), 
-                  dragmode=False, 
-                  clickmode='none', 
+    fig.update_layout(xaxis_type='category',
+                  xaxis_title = "Anos",
+                  yaxis_title="Músicas",
+                  height=55*len(df_data.index),
+                  dragmode=False,
+                  clickmode='none',
                   showlegend=False)
 
     fig.update_yaxes(tickvals=df_data.index, ticktext=[label + '  ' for label in df_data.index])
     fig['layout']['yaxis']['autorange'] = "reversed"
 
 
-    config = {'scrollZoom': False, 
-          'modeBarButtonsToRemove': [ 
+    config = {'scrollZoom': False,
+          'modeBarButtonsToRemove': [
               'zoom', 'pan', 'select', 'zoomIn', 'zoomOut', 'autoScale', 'resetScale']}
-    
+
     st.plotly_chart(fig, use_container_width=True, config = config)
 
 @st.cache_data
@@ -247,6 +249,9 @@ def show_data(df_data):
 #App
 st.set_page_config(layout="wide")
 df_listagem = load_data("./data/500+.csv")
+
+list_aspectos = {"Músicas por Artista":['Artista', 'Ano_Periodo'],"Álbuns por Artista":['Album_Single', 'Ano_Periodo']}
+medidas = ["Contagem", "Média", "Mediana", "Máximo", "Mínimo"]
 
 row0_spacer1, row0_1, row0_spacer2, row0_2, row0_spacer3 = st.columns((.1, 2.3, .1, 1.3, .1))
 with row0_1:
@@ -262,7 +267,6 @@ st.sidebar.text('')
 st.sidebar.text('')
 
 #Filtro Períodos
-st.sidebar.markdown("Selecione o período de anos")
 periodos = np.array(np.unique(df_listagem.Ano_Periodo).tolist())
 periodo_inicial, periodo_final = st.sidebar.select_slider('Selecione os anos para filtrar as análises', periodos, value = [get_primeiro_ano_periodo(df_listagem).values[0], get_ultimo_ano_periodo(df_listagem).values[0]])
 df_listagem_filtrada = filtrar_periodo(df_listagem, periodo_inicial, periodo_final)
@@ -351,6 +355,21 @@ with row4_1:
     st.subheader('Mapa de calor de músicas presentes em todas as edições')
     plotar_mapa_calor(get_musicas_todos_anos(df_listagem))
 
+st.divider()
+
+st.subheader('Análises por edição')
+
+row10_spacer1, row10_1, row10_spacer2, row10_2, row10_spacer3 = st.columns((.2, 1.5, .2, 6.2, .2))
+
+with row10_1:
+    aspecto_edicao_selecionado = st.selectbox ("Escolha o aspecto", list(list_aspectos.keys()), key = 'aspecto_edicao')
+    medida_edicao_selecionada = st.selectbox ("Escolha a medida", medidas, key = 'medida_edicao')
+with row10_2:
+    plotar_grafico_barra(get_analise_periodo(df_listagem_filtrada, medida_edicao_selecionada, list_aspectos[aspecto_edicao_selecionado]), 
+                        "Ano_Periodo", 
+                        medida_edicao_selecionada, 
+                        "Anos", 
+                        medida_edicao_selecionada + ' de ' + aspecto_edicao_selecionado)
 
 '''
 get_musicas_media_posicao(df_listagem_filtrada)
@@ -362,7 +381,4 @@ info.get_top_artista()
 info.get_repetidas()
 info.get_top_album()
 
-plotar_grafico_barra(get_analise_periodo(df_listagem_filtrada, "Média", ['Artista', 'Ano_Periodo']), "Ano_Periodo", "Musica", "Anos", "Músicas por Artista", True)
-
-plotar_grafico_barra(get_analise_periodo(df_listagem_filtrada, 'Média', ['Album_Single', 'Ano_Periodo']), "Ano_Periodo", "Musica", "Anos", "Álbuns por Artista", True)
 '''
