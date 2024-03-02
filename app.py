@@ -253,8 +253,10 @@ df_listagem = load_data("./data/500+.csv")
 list_aspectos = {"Músicas por Artista":['Artista', 'Ano_Periodo'],"Álbuns por Artista":['Album_Single', 'Ano_Periodo']}
 medidas = ["Contagem", "Média", "Mediana", "Máximo", "Mínimo"]
 
-row0_spacer1, row0_1, row0_spacer2, row0_2, row0_spacer3 = st.columns((.1, 2.3, .1, 1.3, .1))
+row0_spacer1, row0_1, row0_2, row0_spacer3 = st.columns((.1, .25, 3.3, .1))
 with row0_1:
+    st.image('logo.jpg', width=75)
+with row0_2:
     st.title('As 500+ da Kiss FM')
 
 row2_spacer1, row2_1, row2_spacer2 = st.columns((.1, 3.2, .1))
@@ -263,7 +265,6 @@ with row2_1:
     st.markdown("Todo o detalhamento do projeto, inclusive o tratamento de dados e algumas curiosidades, está disponível neste [repositório do GitHub](https://github.com/denisvirissimo/500mais-kissfm)")
 
 st.sidebar.text('Filtros')
-st.sidebar.text('')
 st.sidebar.text('')
 
 #Filtro Períodos
