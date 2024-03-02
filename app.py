@@ -258,17 +258,7 @@ df_listagem = load_data("./data/500+.csv")
 list_aspectos = {"Músicas por Artista":['Artista', 'Ano_Periodo'],"Álbuns por Artista":['Album_Single', 'Ano_Periodo']}
 medidas = ["Contagem", "Média", "Mediana", "Máximo", "Mínimo"]
 
-row0_spacer1, row0_1, row0_2, row0_spacer3 = st.columns((.1, .25, 3.3, .1))
-with row0_1:
-    st.image('logo.jpg', width=75)
-with row0_2:
-    st.title('As 500+ da Kiss FM')
-
-row2_spacer1, row2_1, row2_spacer2 = st.columns((.1, 3.2, .1))
-with row2_1:
-    st.markdown("Esse é um projeto de Ciência de Dados com o objetivo de analisar a listagem das 500+ da rádio Kiss FM. A ideia surgiu a partir da curiosidade de saber qual seria a música número 1 de todas as votações até então, e acabou levando ao desenvolvimento de várias outras análises interessantes.")
-    st.markdown("Todo o detalhamento do projeto, inclusive o tratamento de dados e algumas curiosidades, está disponível neste [repositório do GitHub](https://github.com/denisvirissimo/500mais-kissfm)")
-
+#Sidebar
 st.sidebar.text('Filtros')
 st.sidebar.text('')
 
@@ -282,105 +272,108 @@ posicoes = np.unique(df_listagem.Posicao).tolist()
 posicao_inicial, posicao_final = st.sidebar.select_slider('Selecione as posições das 500+ para filtrar as análises', posicoes, value=[min(posicoes), max(posicoes)])
 df_listagem_filtrada = filtrar_posicoes(df_listagem_filtrada, posicao_inicial, posicao_final)
 
-total_musicas = df_listagem_filtrada.Id.nunique()
-total_musicas_distintas = get_total_musicas_distintas(df_listagem_filtrada)
-total_artistas = len(np.unique(df_listagem_filtrada.Artista.dropna()).tolist())
-total_albuns = len(np.unique(df_listagem_filtrada.Album_Single.dropna().astype(str)).tolist())
 
-str_total_musicas = "🎶 " + locale.format_string("%d", total_musicas, grouping = True) + " músicas no total"
-str_total_musicas_distintas = "🎵 " + locale.format_string("%d", total_musicas_distintas, grouping = True) + " músicas diferentes"
-str_total_artistas = "🧑‍🎤 " + locale.format_string("%d", total_artistas, grouping = True) + " artista(s)"
-str_total_albuns = "💿 " + locale.format_string("%d", total_albuns, grouping = True) + " álbum(s)/single(s)"
+col1, col2, col3 = st.columns((.2, 7.1, .2))
 
-row3_spacer1, row3_1, row3_spacer2 = st.columns((.2, 7.1, .2))
-with row3_1:
+with col2:
+    row1_1, row1_2 = st.columns((.25, 3.3), gap="small")
+    with row1_1:
+        st.image('logo.jpg', width=75)
+    with row1_2:
+        st.title('As 500+ da Kiss FM')
+
+    st.markdown("Esse é um projeto de Ciência de Dados com o objetivo de analisar a listagem das 500+ da rádio Kiss FM. A ideia surgiu a partir da curiosidade de saber qual seria a música número 1 de todas as votações até então, e acabou levando ao desenvolvimento de várias outras análises interessantes.")
+    st.markdown("Todo o detalhamento do projeto, inclusive o tratamento de dados e algumas curiosidades, está disponível neste [repositório do GitHub](https://github.com/denisvirissimo/500mais-kissfm)")
+
     st.markdown("")
     with st.status("Carregando...") as status:
         show_data(df_listagem)
         status.update(label="Clique aqui para ver a listagem completa", state="complete")
-st.text('')
-
-row4_spacer1, row4_1, row4_spacer2 = st.columns((.2, 7.1, .2))
-with row4_1:
+    
+    st.text('')
     st.subheader("Exibindo os seguintes dados a partir dos filtros:")
 
-row5_spacer1, row5_1, row5_spacer2, row5_2, row5_spacer3, row5_3, row5_spacer4, row5_4, row5_spacer5 = st.columns((.2, 1.6, .2, 1.6, .2, 1.6, .2, 1.6, .2))
-with row5_1:
-    st.markdown(str_total_musicas)
-with row5_2:
-    st.markdown(str_total_musicas_distintas)
-with row5_3:
-    st.markdown(str_total_artistas)
-with row5_4:
-    st.markdown(str_total_albuns)
+    row2_1, row2_2, row2_3, row2_4 = st.columns((1.6, 1.6, 1.6, 1.6), gap="medium")
+    with row2_1:
+        total_musicas = df_listagem_filtrada.Id.nunique()
+        str_total_musicas = "🎶 " + locale.format_string("%d", total_musicas, grouping = True) + " músicas no total"
+        st.markdown(str_total_musicas)
+    with row2_2:
+        total_musicas_distintas = get_total_musicas_distintas(df_listagem_filtrada)
+        str_total_musicas_distintas = "🎵 " + locale.format_string("%d", total_musicas_distintas, grouping = True) + " músicas diferentes"
+        st.markdown(str_total_musicas_distintas)
+    with row2_3:
+        total_artistas = len(np.unique(df_listagem_filtrada.Artista.dropna()).tolist())
+        str_total_artistas = "🧑‍🎤 " + locale.format_string("%d", total_artistas, grouping = True) + " artista(s)"
+        st.markdown(str_total_artistas)
+    with row2_4:
+        total_albuns = len(np.unique(df_listagem_filtrada.Album_Single.dropna().astype(str)).tolist())
+        str_total_albuns = "💿 " + locale.format_string("%d", total_albuns, grouping = True) + " álbum(s)/single(s)"
+        st.markdown(str_total_albuns)
 
-st.divider()
+    st.divider()
 
-row4_spacer1, row4_1, row4_spacer2 = st.columns((.2, 7.1, .2))
-
-with row4_1:
     st.subheader('Evolução de músicas distintas ao longo dos anos')
     plotar_grafico_barra(get_acumulado_musicas_distintas(df_listagem_filtrada), "Anos", "Acumulado", "Anos", "Acumulado de Músicas distintas")
 
+    row3_1, row3_2 = st.columns((3.1, 3.1), gap="small")
+    with row3_1:
+        st.subheader('Artistas presentes no Top 3')
+    with row3_2:
+        st.subheader('Artistas presentes no Top 10')
 
-row6_spacer1, row6_1, row6_spacer2, row6_2, row6_spacer3 = st.columns((.2, 3.1, .2, 3.1, .2))
-with row6_1:
-    st.subheader('Artistas presentes no Top 3')
-with row6_2:
-    st.subheader('Artistas presentes no Top 10')
+    row4_1, row4_2 = st.columns((3.1, 3.1), gap="small")
+    with row4_1:
+        st.dataframe(data=get_artistas_top_n(df_listagem_filtrada, 3), hide_index=True, use_container_width=True, height=400, column_config={"Artista":"Artista", "Total_Aparicoes": "Número Total de Aparições"})
+    with row4_2:
+        st.dataframe(data=get_artistas_top_n(df_listagem_filtrada, 10), hide_index=True, use_container_width=True, height=400, column_config={"Artista":"Artista", "Total_Aparicoes": "Número Total de Aparições"})
 
-row7_spacer1, row7_1, row7_spacer2, row7_2, row7_spacer3 = st.columns((.2, 3.1, .2, 3.1, .2))
-with row7_1:
-    st.dataframe(data=get_artistas_top_n(df_listagem_filtrada, 3), hide_index=True, use_container_width=True, height=400, column_config={"Artista":"Artista", "Total_Aparicoes": "Número Total de Aparições"})
-with row7_2:
-    st.dataframe(data=get_artistas_top_n(df_listagem_filtrada, 10), hide_index=True, use_container_width=True, height=400, column_config={"Artista":"Artista", "Total_Aparicoes": "Número Total de Aparições"})
+    row5_1, row5_2 = st.columns((3.1, 3.1), gap="small")
+    with row5_1:
+        st.subheader('Músicas presentes no Top 3')
+    with row5_2:
+        st.subheader('Músicas presentes no Top 10')
 
-st.divider()
+    row6_1, row6_2 = st.columns((3.1, 3.1), gap="small")
+    with row6_1:
+        st.dataframe(data=get_musicas_top_n(df_listagem_filtrada, 3), hide_index=True, use_container_width=True, height=400, column_config={"Musica":"Música", "Total_Aparicoes": "Número Total de Aparições"})
+    with row6_2:
+        st.dataframe(data=get_musicas_top_n(df_listagem_filtrada, 10), hide_index=True, use_container_width=True, height=400, column_config={"Musica":"Música", "Total_Aparicoes": "Número Total de Aparições"})
 
-row8_spacer1, row8_1, row8_spacer2, row8_2, row8_spacer3 = st.columns((.2, 3.1, .2, 3.1, .2))
-with row8_1:
-    st.subheader('Músicas presentes no Top 3')
-with row8_2:
-    st.subheader('Músicas presentes no Top 10')
+    st.divider()
 
-row9_spacer1, row9_1, row9_spacer2, row9_2, row9_spacer3 = st.columns((.2, 3.1, .2, 3.1, .2))
-with row9_1:
-    st.dataframe(data=get_musicas_top_n(df_listagem_filtrada, 3), hide_index=True, use_container_width=True, height=400, column_config={"Musica":"Música", "Total_Aparicoes": "Número Total de Aparições"})
-with row9_2:
-    st.dataframe(data=get_musicas_top_n(df_listagem_filtrada, 10), hide_index=True, use_container_width=True, height=400, column_config={"Musica":"Música", "Total_Aparicoes": "Número Total de Aparições"})
-
-st.divider()
-
-row4_spacer1, row4_1, row4_spacer2 = st.columns((.2, 7.1, .2))
-
-with row4_1:
     st.subheader('Músicas distintas por Ano')
     plotar_grafico_barra(get_musicas_ano_lancamento(df_listagem_filtrada), "Data_Lancamento_Album", "Total_Musicas", "Anos", "Quantidade de Músicas distintas")
+
+    st.divider()
+
     st.subheader('Músicas distintas por Década')
     plotar_grafico_barra(get_musicas_decada_lancamento(df_listagem_filtrada), "Decada_Lancamento_Album", "Total_Musicas", "Décadas", "Quantidade de Músicas distintas")
+
+    st.divider()
+
     st.subheader('Mapa de calor de músicas presentes em todas as edições')
     plotar_mapa_calor(get_musicas_todos_anos(df_listagem))
 
-st.divider()
+    st.divider()
 
-st.subheader('Análises por edição')
+    st.subheader('Análises por edição')
 
-row10_spacer1, row10_1, row10_spacer2, row10_2, row10_spacer3 = st.columns((.2, 1.5, .2, 6.2, .2))
+    row7_1, row7_2 = st.columns((1.5, 6.2), gap="small")
+    with row7_1:
+        aspecto_edicao_selecionado = st.selectbox ("Escolha o aspecto", list(list_aspectos.keys()), key = 'aspecto_edicao')
+        medida_edicao_selecionada = st.selectbox ("Escolha a medida", medidas, key = 'medida_edicao')
+    with row7_2:
+        plotar_grafico_barra(get_analise_periodo(df_listagem_filtrada, medida_edicao_selecionada, list_aspectos[aspecto_edicao_selecionado]),
+                            "Ano_Periodo",
+                            medida_edicao_selecionada,
+                            "Anos",
+                            medida_edicao_selecionada + ' de ' + aspecto_edicao_selecionado)
 
-with row10_1:
-    aspecto_edicao_selecionado = st.selectbox ("Escolha o aspecto", list(list_aspectos.keys()), key = 'aspecto_edicao')
-    medida_edicao_selecionada = st.selectbox ("Escolha a medida", medidas, key = 'medida_edicao')
-with row10_2:
-    plotar_grafico_barra(get_analise_periodo(df_listagem_filtrada, medida_edicao_selecionada, list_aspectos[aspecto_edicao_selecionado]),
-                        "Ano_Periodo",
-                        medida_edicao_selecionada,
-                        "Anos",
-                        medida_edicao_selecionada + ' de ' + aspecto_edicao_selecionado)
+    st.divider()
 
-st.divider()
-
-st.subheader('Top 10 de todas as edições')
-st.table(get_top_n_todas_edicoes(df_listagem, 10))
+    st.subheader('Top 10 de todas as edições')
+    st.table(get_top_n_todas_edicoes(df_listagem, 10))
 
 '''
 
