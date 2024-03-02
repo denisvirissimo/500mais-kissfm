@@ -289,9 +289,9 @@ str_total_albuns = "💿 " + locale.format_string("%d", total_albuns, grouping =
 row3_spacer1, row3_1, row3_spacer2 = st.columns((.2, 7.1, .2))
 with row3_1:
     st.markdown("")
-    see_data = st.expander('Clique aqui para ver a listagem completa')
-    with see_data:
+    with st.status("Carregando...") as status:
         show_data(df_listagem)
+        status.update(label="Clique aqui para ver a listagem completa", state="complete")
 st.text('')
 
 row4_spacer1, row4_1, row4_spacer2 = st.columns((.2, 7.1, .2))
