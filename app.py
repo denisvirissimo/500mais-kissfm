@@ -313,67 +313,68 @@ with col2:
 
     st.divider()
 
-    st.subheader('Evolução de músicas distintas ao longo dos anos')
-    plotar_grafico_barra(get_acumulado_musicas_distintas(df_listagem_filtrada), "Anos", "Acumulado", "Anos", "Acumulado de Músicas distintas")
+    tab_geral, tab_edicao, tab_edicoes, tab_analises, tab_curiosidades = st.tabs(["Visão Geral", "Por Edição", "Todas as Edições", "Análises", "Curiosidades"])
 
-    row3_1, row3_2 = st.columns((3.1, 3.1), gap="small")
-    with row3_1:
-        st.subheader('Artistas presentes no Top 3')
-    with row3_2:
-        st.subheader('Artistas presentes no Top 10')
+    with tab_geral:
+        st.subheader('Evolução de músicas distintas ao longo dos anos')
+        plotar_grafico_barra(get_acumulado_musicas_distintas(df_listagem_filtrada), "Anos", "Acumulado", "Anos", "Acumulado de Músicas distintas")
 
-    row4_1, row4_2 = st.columns((3.1, 3.1), gap="small")
-    with row4_1:
-        st.dataframe(data=get_artistas_top_n(df_listagem_filtrada, 3), hide_index=True, use_container_width=True, height=400, column_config={"Artista":"Artista", "Total_Aparicoes": "Número Total de Aparições"})
-    with row4_2:
-        st.dataframe(data=get_artistas_top_n(df_listagem_filtrada, 10), hide_index=True, use_container_width=True, height=400, column_config={"Artista":"Artista", "Total_Aparicoes": "Número Total de Aparições"})
+        row3_1, row3_2 = st.columns((3.1, 3.1), gap="small")
+        with row3_1:
+            st.subheader('Artistas presentes no Top 3')
+        with row3_2:
+            st.subheader('Artistas presentes no Top 10')
 
-    row5_1, row5_2 = st.columns((3.1, 3.1), gap="small")
-    with row5_1:
-        st.subheader('Músicas presentes no Top 3')
-    with row5_2:
-        st.subheader('Músicas presentes no Top 10')
+        row4_1, row4_2 = st.columns((3.1, 3.1), gap="small")
+        with row4_1:
+            st.dataframe(data=get_artistas_top_n(df_listagem_filtrada, 3), hide_index=True, use_container_width=True, height=400, column_config={"Artista":"Artista", "Total_Aparicoes": "Número Total de Aparições"})
+        with row4_2:
+            st.dataframe(data=get_artistas_top_n(df_listagem_filtrada, 10), hide_index=True, use_container_width=True, height=400, column_config={"Artista":"Artista", "Total_Aparicoes": "Número Total de Aparições"})
 
-    row6_1, row6_2 = st.columns((3.1, 3.1), gap="small")
-    with row6_1:
-        st.dataframe(data=get_musicas_top_n(df_listagem_filtrada, 3), hide_index=True, use_container_width=True, height=400, column_config={"Musica":"Música", "Total_Aparicoes": "Número Total de Aparições"})
-    with row6_2:
-        st.dataframe(data=get_musicas_top_n(df_listagem_filtrada, 10), hide_index=True, use_container_width=True, height=400, column_config={"Musica":"Música", "Total_Aparicoes": "Número Total de Aparições"})
+        row5_1, row5_2 = st.columns((3.1, 3.1), gap="small")
+        with row5_1:
+            st.subheader('Músicas presentes no Top 3')
+        with row5_2:
+            st.subheader('Músicas presentes no Top 10')
 
-    st.divider()
+        row6_1, row6_2 = st.columns((3.1, 3.1), gap="small")
+        with row6_1:
+            st.dataframe(data=get_musicas_top_n(df_listagem_filtrada, 3), hide_index=True, use_container_width=True, height=400, column_config={"Musica":"Música", "Total_Aparicoes": "Número Total de Aparições"})
+        with row6_2:
+            st.dataframe(data=get_musicas_top_n(df_listagem_filtrada, 10), hide_index=True, use_container_width=True, height=400, column_config={"Musica":"Música", "Total_Aparicoes": "Número Total de Aparições"})
 
-    st.subheader('Músicas distintas por Ano')
-    plotar_grafico_barra(get_musicas_ano_lancamento(df_listagem_filtrada), "Data_Lancamento_Album", "Total_Musicas", "Anos", "Quantidade de Músicas distintas", True)
+        st.divider()
 
-    st.divider()
+        st.subheader('Músicas distintas por Ano')
+        plotar_grafico_barra(get_musicas_ano_lancamento(df_listagem_filtrada), "Data_Lancamento_Album", "Total_Musicas", "Anos", "Quantidade de Músicas distintas", True)
 
-    st.subheader('Músicas distintas por Década')
-    plotar_grafico_barra(get_musicas_decada_lancamento(df_listagem_filtrada), "Decada_Lancamento_Album", "Total_Musicas", "Décadas", "Quantidade de Músicas distintas")
+        st.divider()
 
-    st.divider()
+        st.subheader('Músicas distintas por Década')
+        plotar_grafico_barra(get_musicas_decada_lancamento(df_listagem_filtrada), "Decada_Lancamento_Album", "Total_Musicas", "Décadas", "Quantidade de Músicas distintas")
 
-    st.subheader('Mapa de calor de músicas presentes em todas as edições')
-    plotar_mapa_calor(get_musicas_todos_anos(df_listagem))
+    with tab_edicoes:
+        st.subheader('Mapa de calor de músicas presentes em todas as edições')
+        plotar_mapa_calor(get_musicas_todos_anos(df_listagem))
 
-    st.divider()
+        st.divider()
 
-    st.subheader('Análises por edição')
+        st.subheader('Top 10 de todas as edições')
+        st.table(get_top_n_todas_edicoes(df_listagem, 10))
 
-    row7_1, row7_2 = st.columns((1.5, 6.2), gap="small")
-    with row7_1:
-        aspecto_edicao_selecionado = st.selectbox ("Escolha o aspecto", list(list_aspectos.keys()), key = 'aspecto_edicao')
-        medida_edicao_selecionada = st.selectbox ("Escolha a medida", medidas, key = 'medida_edicao')
-    with row7_2:
-        plotar_grafico_barra(get_analise_periodo(df_listagem_filtrada, medida_edicao_selecionada, list_aspectos[aspecto_edicao_selecionado]),
-                            "Ano_Periodo",
-                            medida_edicao_selecionada,
-                            "Anos",
-                            medida_edicao_selecionada + ' de ' + aspecto_edicao_selecionado)
+    with tab_analises:
+        st.subheader('Análises por edição')
 
-    st.divider()
-
-    st.subheader('Top 10 de todas as edições')
-    st.table(get_top_n_todas_edicoes(df_listagem, 10))
+        row7_1, row7_2 = st.columns((1.5, 6.2), gap="small")
+        with row7_1:
+            aspecto_edicao_selecionado = st.selectbox ("Escolha o aspecto", list(list_aspectos.keys()), key = 'aspecto_edicao')
+            medida_edicao_selecionada = st.selectbox ("Escolha a medida", medidas, key = 'medida_edicao')
+        with row7_2:
+            plotar_grafico_barra(get_analise_periodo(df_listagem_filtrada, medida_edicao_selecionada, list_aspectos[aspecto_edicao_selecionado]),
+                                "Ano_Periodo",
+                                medida_edicao_selecionada,
+                                "Anos",
+                                medida_edicao_selecionada + ' de ' + aspecto_edicao_selecionado)
 
 '''
 
