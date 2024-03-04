@@ -273,10 +273,11 @@ st.set_page_config(layout="wide")
 df_listagem = load_data("./data/500+.csv")
 
 list_aspectos = {"Músicas por Artista":['Artista', 'Ano_Periodo'],"Álbuns por Artista":['Album_Single', 'Ano_Periodo']}
+list_variaveis = {"Artista": 'Artista', "Música": 'Musica'}
 medidas = ["Contagem", "Média", "Mediana", "Máximo", "Mínimo"]
 
 #Sidebar
-st.sidebar.text('Filtros')
+st.sidebar.subheader('Filtros')
 st.sidebar.text('')
 
 #Filtro Períodos
@@ -306,7 +307,7 @@ with col2:
     with st.status("Carregando...") as status:
         show_data(df_listagem)
         status.update(label="Clique aqui para ver a listagem completa", state="complete")
-    
+
     st.text('')
     st.subheader("Exibindo os seguintes dados a partir dos filtros:")
 
@@ -336,29 +337,22 @@ with col2:
         st.subheader('Evolução de músicas distintas ao longo dos anos')
         plotar_grafico_barra(get_acumulado_musicas_distintas(df_listagem_filtrada), "Anos", "Acumulado", "Anos", "Acumulado de Músicas distintas")
 
-        row3_1, row3_2 = st.columns((3.1, 3.1), gap="small")
-        with row3_1:
-            st.subheader('Artistas presentes no Top 3')
-        with row3_2:
-            st.subheader('Artistas presentes no Top 10')
+        st.divider()
 
-        row4_1, row4_2 = st.columns((3.1, 3.1), gap="small")
+        st.subheader('Artistas, Músicas e Álbuns no Topo')
+
+        row4_1, row4_2 = st.columns((2, 5), gap="large")
         with row4_1:
-            st.dataframe(data=get_artistas_top_n(df_listagem_filtrada, 3), hide_index=True, use_container_width=True, height=400, column_config={"Artista":"Artista", "Total_Aparicoes": "Número Total de Aparições"})
+            top_n = st.slider('Qual Top N você deseja visualizar?', 1, 50, 3)
+            variavel_topn_selecionada = st.selectbox ("Escolha a variável para visualizar no Top", list(list_variaveis.keys()), key = 'variavel_topn')
         with row4_2:
-            st.dataframe(data=get_artistas_top_n(df_listagem_filtrada, 10), hide_index=True, use_container_width=True, height=400, column_config={"Artista":"Artista", "Total_Aparicoes": "Número Total de Aparições"})
-
-        row5_1, row5_2 = st.columns((3.1, 3.1), gap="small")
-        with row5_1:
-            st.subheader('Músicas presentes no Top 3')
-        with row5_2:
-            st.subheader('Músicas presentes no Top 10')
-
-        row6_1, row6_2 = st.columns((3.1, 3.1), gap="small")
-        with row6_1:
-            st.dataframe(data=get_musicas_top_n(df_listagem_filtrada, 3), hide_index=True, use_container_width=True, height=400, column_config={"Musica":"Música", "Total_Aparicoes": "Número Total de Aparições"})
-        with row6_2:
-            st.dataframe(data=get_musicas_top_n(df_listagem_filtrada, 10), hide_index=True, use_container_width=True, height=400, column_config={"Musica":"Música", "Total_Aparicoes": "Número Total de Aparições"})
+            match list_variaveis[variavel_topn_selecionada]:
+                case 'Artista':
+                    st.dataframe(data=get_artistas_top_n(df_listagem_filtrada, top_n), hide_index=True, use_container_width=True, height=400, column_config={"Artista":"Artista", "Total_Aparicoes": "Número Total de Aparições"})
+                case 'Musica':
+                    st.dataframe(data=get_musicas_top_n(df_listagem_filtrada, top_n), hide_index=True, use_container_width=True, height=400, column_config={"Musica":"Música", "Total_Aparicoes": "Número Total de Aparições"})
+                case default:
+                    st.write('Escolha uma opção')
 
         st.divider()
 
