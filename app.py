@@ -217,6 +217,23 @@ def plotar_grafico_barra(df_data, xdata, ydata, xlabel, ylabel, x_diagonal=False
         fig.update_xaxes(tickangle=-45)
     st.plotly_chart(fig, use_container_width=True)
 
+def plotar_grafico_barra_horizontal(df_data, xdata, ydata, xlabel, ylabel):
+    df = df_data.sort_values(xdata, ascending = True)
+
+    fig = go.Figure(go.Bar(
+        x = df[xdata],
+        y = df[ydata],
+        hoverinfo = 'all',
+        name='',
+        textposition = 'outside',
+        texttemplate='%{x}',
+        hovertemplate = xlabel + ": %{x}<br>" + ylabel + ": %{y}",
+        orientation = 'h',
+        marker=dict(color='#C50B11'))
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+
 def plotar_mapa_calor(df_data):
     fig = go.Figure(data=go.Heatmap(
                         z=df_data,
