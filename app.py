@@ -299,6 +299,7 @@ posicoes = np.unique(df_listagem.Posicao).tolist()
 posicao_inicial, posicao_final = st.sidebar.select_slider('Selecione as posições das 500+ para filtrar as análises', posicoes, value=[min(posicoes), max(posicoes)])
 df_listagem_filtrada = filtrar_posicoes(df_listagem_filtrada, posicao_inicial, posicao_final)
 
+st.sidebar.caption('Estes filtros se aplicam somente às abas de Visão Geral e Análises.')
 
 col1, col2, col3 = st.columns((.2, 7.1, .2))
 
