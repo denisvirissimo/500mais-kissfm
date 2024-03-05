@@ -185,6 +185,15 @@ def get_musicas_top_n(df_data, top_n):
           .reset_index(name='Total_Aparicoes'))
     return df
 
+def get_albuns_top_n(df_data, top_n):
+    df = filtrar_posicoes(df_data, 1, top_n)
+    df = (filtrar_inconsistencias(df)
+          .groupby(['Artista', 'Album_Single'])
+          .size()
+          .sort_values(ascending=False)
+          .reset_index(name='Total_Aparicoes'))
+    return df
+
 def get_top_n_todas_edicoes(df_data, top_n):
     df = get_musicas_media_posicao(df_data).loc[:,['Artista', 'Musica']]
     df['Posicao'] = range(1, len(df) + 1)
@@ -217,7 +226,7 @@ def plotar_grafico_barra(df_data, xdata, ydata, xlabel, ylabel, x_diagonal=False
         fig.update_xaxes(tickangle=-45)
     st.plotly_chart(fig, use_container_width=True)
 
-def plotar_grafico_barra_horizontal(df_data, xdata, ydata, xlabel, ylabel):
+def plotar_grafico_barra_horizontal(df_data, xdata, ydata, xlabel, ylabel, x_diagonal=False):
     df = df_data.sort_values(xdata, ascending = True)
 
     fig = go.Figure(go.Bar(
@@ -273,7 +282,7 @@ st.set_page_config(layout="wide")
 df_listagem = load_data("./data/500+.csv")
 
 list_aspectos = {"Músicas por Artista":['Artista', 'Ano_Periodo'],"Álbuns por Artista":['Album_Single', 'Ano_Periodo']}
-list_variaveis = {"Artista": 'Artista', "Música": 'Musica'}
+list_variaveis = {"Artista": 'Artista', "Música": 'Musica', "Álbum/Single": 'Album'}
 medidas = ["Contagem", "Média", "Mediana", "Máximo", "Mínimo"]
 
 #Sidebar
@@ -351,6 +360,8 @@ with col2:
                     st.dataframe(data=get_artistas_top_n(df_listagem_filtrada, top_n), hide_index=True, use_container_width=True, height=400, column_config={"Artista":"Artista", "Total_Aparicoes": "Número Total de Aparições"})
                 case 'Musica':
                     st.dataframe(data=get_musicas_top_n(df_listagem_filtrada, top_n), hide_index=True, use_container_width=True, height=400, column_config={"Musica":"Música", "Total_Aparicoes": "Número Total de Aparições"})
+                case 'Album':
+                    st.dataframe(data=get_albuns_top_n(df_listagem_filtrada, top_n), hide_index=True, use_container_width=True, height=400, column_config={"Album_Single":"Álbum/Single", "Total_Aparicoes": "Número Total de Aparições"})
                 case default:
                     st.write('Escolha uma opção')
 
