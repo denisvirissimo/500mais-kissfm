@@ -1,7 +1,11 @@
 import pandas as pd
 import numpy as np
 import locale
+import plotly.express as px
+import plotly.graph_objects as go
 import streamlit as st
+import streamlit.components.v1 as components
+import io
 
 #Configuração
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
@@ -273,6 +277,34 @@ def plotar_mapa_calor(df_data):
 
     st.plotly_chart(fig, use_container_width=True, config = config)
 
+def get_componente_top10(df_data):
+    html = load_css()
+    html+="""
+
+      <div class="list">
+          <div class="list__body">
+            <table class="list__table">
+              <tbody>
+    """
+
+    for index, row in df_data.iterrows():
+        html += '<tr class="list__row"><td class="list__cell"><span class="list__value">' + str(index) +'</span></td>'
+        html += '<td class="list__cell"><span class="list__value">'+row.Musica+'</span><small class="list__label"></small></td>'
+        html += '<td class="list__cell"><span class="list__value">'+row.Artista+'</span><small class="list__label"></small></td><td class="list__cell"></td></tr>'
+
+    html+="""
+            </tbody></table>
+          </div>
+        </div>
+
+    """
+    return components.html(html, height=600)
+
+@st.cache_data
+def load_css():
+    with open('style.css') as f:
+        return f'<style>{f.read()}</style>'
+
 @st.cache_data
 def show_data(df_data):
     st.dataframe(data=df_data.reset_index(drop=True).style.format(thousands=None), hide_index=True)
@@ -404,13 +436,17 @@ with col2:
         st.markdown('E tivemos música repetida? **' + info.get_repetidas() + '**!')
 
     with tab_edicoes:
-        st.subheader('Mapa de calor de músicas presentes em todas as edições')
-        plotar_mapa_calor(get_musicas_todos_anos(df_listagem))
+    
+        row6_1, row6_2= st.columns((3.5, 3.5), gap="small")
+
+        with row6_1:
+            st.subheader('Top 10 de todas as edições')
+            get_componente_top10(get_top_n_todas_edicoes(df_listagem, 10))
 
         st.divider()
 
-        st.subheader('Top 10 de todas as edições')
-        st.table(get_top_n_todas_edicoes(df_listagem, 10))
+        st.subheader('Mapa de calor de músicas presentes em todas as edições')
+        plotar_mapa_calor(get_musicas_todos_anos(df_listagem))
 
     with tab_analises:
         st.subheader('Análises por edição')
