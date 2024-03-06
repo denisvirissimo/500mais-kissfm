@@ -51,7 +51,7 @@ class Info:
 def load_data(dataset):
     df_data = pd.read_csv(dataset)
     df_data['Id'] = range(1, len(df_data) + 1)
-    df_data['Ano_Periodo'] = df_data.Ano.astype(str).str[-2:] + "-" + (df_data.Ano +1).astype(str).str[-2:]
+    df_data['Edicao'] = df_data.Ano.astype(str).str[-2:] + "-" + (df_data.Ano +1).astype(str).str[-2:]
     df_data['Data_Lancamento_Album'] = pd.to_datetime(df_data['Data_Lancamento_Album'])
     df_data['Decada_Lancamento_Album'] = df_data['Data_Lancamento_Album'].dt.year.apply(get_decada)
     return df_data
@@ -60,12 +60,12 @@ def load_data(dataset):
 def get_decada(ano):
     return 'Anos ' + str(ano)[2] + '0'
 
-def filtrar_periodo(df_data, periodo_inicial, periodo_final):
-    periodos = np.unique(df_data.Ano_Periodo).tolist()
-    indice_inicial = periodos.index(periodo_inicial)
-    indice_final = periodos.index(periodo_final)+1
-    periodos_selecionados = periodos[indice_inicial:indice_final]
-    return df_data[df_data['Ano_Periodo'].isin(periodos_selecionados)]
+def filtrar_edicao(df_data, edicao_inicial, edicao_final):
+    edicoes = np.unique(df_data.Edicao).tolist()
+    indice_inicial = edicoes.index(edicao_inicial)
+    indice_final = edicoes.index(edicao_final)+1
+    edicoes_selecionadas = edicoes[indice_inicial:indice_final]
+    return df_data[df_data['Edicao'].isin(edicoes_selecionadas)]
 
 def filtrar_posicoes(df_data, posicao_inicial, posicao_final):
     posicoes = list(range(posicao_inicial, posicao_final + 1))
@@ -80,11 +80,11 @@ def get_primeiro_ano(df_data):
 def get_ultimo_ano(df_data):
     return df_data.sort_values(by='Ano').tail(1)['Ano']
 
-def get_primeiro_ano_periodo(df_data):
-    return df_data.sort_values(by='Ano').head(1)['Ano_Periodo']
+def get_primeira_edicao(df_data):
+    return df_data.sort_values(by='Ano').head(1)['Edicao']
 
-def get_ultimo_ano_periodo(df_data):
-    return df_data.sort_values(by='Ano').tail(1)['Ano_Periodo']
+def get_ultima_edicao(df_data):
+    return df_data.sort_values(by='Ano').tail(1)['Edicao']
 
 def get_primeiro_ano_lancamento(df_data):
     return df_listagem.dropna(subset=['Musica']).sort_values(by = 'Data_Lancamento_Album').head(1)['Data_Lancamento_Album'].dt.year
@@ -99,11 +99,11 @@ def get_musicas_distintas(df_data):
     return filtrar_inconsistencias(df_data).drop_duplicates(subset=['Artista', 'Musica', 'Observacao'])
 
 def get_acumulado_musicas_distintas(df_data):
-    periodos = np.unique(df_data.Ano_Periodo).tolist()
+    edicoes = np.unique(df_data.Edicao).tolist()
     distinta_acumulado_periodo = []
-    for p in periodos:
-        distinta_acumulado_periodo.append(get_total_musicas_distintas(filtrar_periodo(df_data, periodos[0], p)))
-    return pd.DataFrame({'Anos': periodos, 'Acumulado': distinta_acumulado_periodo})
+    for e in edicoes:
+        distinta_acumulado_periodo.append(get_total_musicas_distintas(filtrar_edicao(df_data, edicoes[0], e)))
+    return pd.DataFrame({'Anos': edicoes, 'Acumulado': distinta_acumulado_periodo})
 
 def get_musicas_ano_lancamento(df_data):
     df_temp = get_musicas_distintas(df_data)
@@ -120,7 +120,7 @@ def get_musicas_todos_anos(df_data):
     df['Musica'] = df.apply(lambda row: row['Artista'] + ' - ' + row['Musica'], axis=1)
     df = df.loc[df['Count'] == 24].sort_values(['Ano','Posicao'])
 
-    return pd.pivot(data=df, index='Musica', columns='Ano_Periodo', values='Posicao')
+    return pd.pivot(data=df, index='Musica', columns='Edicao', values='Posicao')
 
 def get_musicas_media_posicao(df_data):
     #Fórmula Si = wi * Ai + (1 - wi) * S, em que:
@@ -204,15 +204,15 @@ def get_analise_periodo(df_data, medida, agregador):
     df = df.groupby(agregador)['Musica'].count().reset_index(name='Contagem')
     match medida:
         case 'Contagem':
-            df = df.groupby('Ano_Periodo').sum().reset_index()
+            df = df.groupby('Edicao').sum().reset_index()
         case 'Média':
-            df = df.groupby('Ano_Periodo')['Contagem'].mean().reset_index(name=medida)
+            df = df.groupby('Edicao')['Contagem'].mean().reset_index(name=medida)
         case 'Mediana':
-            df = df.groupby('Ano_Periodo')['Contagem'].median().reset_index(name=medida)
+            df = df.groupby('Edicao')['Contagem'].median().reset_index(name=medida)
         case 'Mínimo':
-            df = df.groupby('Ano_Periodo')['Contagem'].min().reset_index(name=medida)
+            df = df.groupby('Edicao')['Contagem'].min().reset_index(name=medida)
         case 'Máximo':
-            df = df.groupby('Ano_Periodo')['Contagem'].max().reset_index(name=medida)
+            df = df.groupby('Edicao')['Contagem'].max().reset_index(name=medida)
         case default:
             df = df
 
@@ -252,11 +252,11 @@ def plotar_mapa_calor(df_data):
                         colorscale='viridis',
                         reversescale=True,
                         name="",
-                        hovertemplate='Ano: %{x}<br>Música: %{y}<br>Posição: %{z}',
+                        hovertemplate='Edição: %{x}<br>Música: %{y}<br>Posição: %{z}',
                         texttemplate="%{text}"))
 
     fig.update_layout(xaxis_type='category',
-                  xaxis_title = "Anos",
+                  xaxis_title = "Edições",
                   yaxis_title="Músicas",
                   height=55*len(df_data.index),
                   dragmode=False,
@@ -281,7 +281,7 @@ def show_data(df_data):
 st.set_page_config(layout="wide")
 df_listagem = load_data("./data/500+.csv")
 
-list_aspectos = {"Músicas por Artista":['Artista', 'Ano_Periodo'],"Álbuns por Artista":['Album_Single', 'Ano_Periodo']}
+list_aspectos = {"Músicas por Artista":['Artista', 'Edicao'],"Álbuns por Artista":['Album_Single', 'Edicao']}
 list_variaveis = {"Artista": 'Artista', "Música": 'Musica', "Álbum/Single": 'Album'}
 medidas = ["Contagem", "Média", "Mediana", "Máximo", "Mínimo"]
 
@@ -289,17 +289,17 @@ medidas = ["Contagem", "Média", "Mediana", "Máximo", "Mínimo"]
 st.sidebar.subheader('Filtros')
 st.sidebar.text('')
 
-#Filtro Períodos
-periodos = np.array(np.unique(df_listagem.Ano_Periodo).tolist())
-periodo_inicial, periodo_final = st.sidebar.select_slider('Selecione os anos para filtrar as análises', periodos, value = [get_primeiro_ano_periodo(df_listagem).values[0], get_ultimo_ano_periodo(df_listagem).values[0]])
-df_listagem_filtrada = filtrar_periodo(df_listagem, periodo_inicial, periodo_final)
+#Filtro Edições
+edicoes = np.array(np.unique(df_listagem.Edicao).tolist())
+edicao_inicial, edicao_final = st.sidebar.select_slider('Selecione as edições para filtrar os dados', edicoes, value = [get_primeira_edicao(df_listagem).values[0], get_ultima_edicao(df_listagem).values[0]])
+df_listagem_filtrada = filtrar_edicao(df_listagem, edicao_inicial, edicao_final)
 
 #Filtro Posições
 posicoes = np.unique(df_listagem.Posicao).tolist()
 posicao_inicial, posicao_final = st.sidebar.select_slider('Selecione as posições das 500+ para filtrar as análises', posicoes, value=[min(posicoes), max(posicoes)])
 df_listagem_filtrada = filtrar_posicoes(df_listagem_filtrada, posicao_inicial, posicao_final)
 
-st.sidebar.caption('Estes filtros se aplicam somente às abas de Visão Geral e Análises.')
+st.sidebar.caption('Estes filtros se aplicam somente às abas Visão Geral e Análises.')
 
 col1, col2, col3 = st.columns((.2, 7.1, .2))
 
@@ -345,7 +345,7 @@ with col2:
 
     with tab_geral:
         st.subheader('Evolução de músicas distintas ao longo dos anos')
-        plotar_grafico_barra(get_acumulado_musicas_distintas(df_listagem_filtrada), "Anos", "Acumulado", "Anos", "Acumulado de Músicas distintas")
+        plotar_grafico_barra(get_acumulado_musicas_distintas(df_listagem_filtrada), "Anos", "Acumulado", "Edições", "Acumulado de Músicas distintas")
 
         st.divider()
 
@@ -368,26 +368,27 @@ with col2:
 
         st.divider()
 
-        st.subheader('Músicas distintas por Ano')
+        st.subheader('Músicas distintas por Ano de Lançamento')
         plotar_grafico_barra(get_musicas_ano_lancamento(df_listagem_filtrada), "Data_Lancamento_Album", "Total_Musicas", "Anos", "Quantidade de Músicas distintas", True)
 
         st.divider()
 
-        st.subheader('Músicas distintas por Década')
+        st.subheader('Músicas distintas por Década de Lançamento')
         plotar_grafico_barra(get_musicas_decada_lancamento(df_listagem_filtrada), "Decada_Lancamento_Album", "Total_Musicas", "Décadas", "Quantidade de Músicas distintas")
 
     with tab_edicao:
 
-        st.markdown('Escolha um período e veja algumas informações relavantes:')
+        st.markdown('Escolha uma edição e veja algumas informações relavantes:')
 
         row5_1, row5_2= st.columns((1.5, 6.2), gap="small")
         with row5_1:
             anos = np.array(np.unique(df_listagem.Ano).tolist())
-            list_periodos = dict(zip(periodos, anos))
-            periodo_selecionado = st.selectbox ("Edição", list_periodos.keys(), key = 'periodo_selecionado')
+            list_edicoes = dict(zip(edicoes, anos))
+            edicao_selecionada = st.selectbox ("Edição", list_edicoes.keys(), key = 'edicao_selecionada')
 
-        st.text('')
-        info = Info(df_listagem, list_periodos[periodo_selecionado])
+        st.divider()
+
+        info = Info(df_listagem, list_edicoes[edicao_selecionada])
 
         st.markdown('Neste ano a 1ª posição ficou com **' + info.get_musica_posicao(1) + '** e a posição de número 500 com **' + info.get_musica_posicao(500) + '**.')
 
@@ -414,7 +415,7 @@ with col2:
             medida_edicao_selecionada = st.selectbox ("Escolha a medida", medidas, key = 'medida_edicao')
         with row7_2:
             plotar_grafico_barra(get_analise_periodo(df_listagem_filtrada, medida_edicao_selecionada, list_aspectos[aspecto_edicao_selecionado]),
-                                "Ano_Periodo",
+                                "Edicao",
                                 medida_edicao_selecionada,
-                                "Anos",
+                                "Edições",
                                 medida_edicao_selecionada + ' de ' + aspecto_edicao_selecionado)
