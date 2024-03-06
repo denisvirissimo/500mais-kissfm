@@ -376,6 +376,26 @@ with col2:
         st.subheader('Músicas distintas por Década')
         plotar_grafico_barra(get_musicas_decada_lancamento(df_listagem_filtrada), "Decada_Lancamento_Album", "Total_Musicas", "Décadas", "Quantidade de Músicas distintas")
 
+    with tab_edicao:
+
+        st.markdown('Escolha um período e veja algumas informações relavantes:')
+
+        row5_1, row5_2= st.columns((1.5, 6.2), gap="small")
+        with row5_1:
+            anos = np.array(np.unique(df_listagem.Ano).tolist())
+            list_periodos = dict(zip(periodos, anos))
+            periodo_selecionado = st.selectbox ("Edição", list_periodos.keys(), key = 'periodo_selecionado')
+
+        st.text('')
+        info = Info(df_listagem, list_periodos[periodo_selecionado])
+
+        st.markdown('Neste ano a 1ª posição ficou com **' + info.get_musica_posicao(1) + '** e a posição de número 500 com **' + info.get_musica_posicao(500) + '**.')
+
+        st.markdown('O Artista em que mais apareceu na listagem foi **' + info.get_top_artista() + '**.')
+        st.markdown('Já o Álbum/Single com mais músicas na lista foi **' + info.get_top_album() + '**.')
+
+        st.markdown('E tivemos música repetida? **' + info.get_repetidas() + '**!')
+
     with tab_edicoes:
         st.subheader('Mapa de calor de músicas presentes em todas as edições')
         plotar_mapa_calor(get_musicas_todos_anos(df_listagem))
@@ -398,14 +418,3 @@ with col2:
                                 medida_edicao_selecionada,
                                 "Anos",
                                 medida_edicao_selecionada + ' de ' + aspecto_edicao_selecionado)
-
-'''
-
-info = Info(df_listagem, 2000)
-info.get_musica_posicao(1)
-info.get_musica_posicao(500)
-info.get_top_artista()
-info.get_repetidas()
-info.get_top_album()
-
-'''
