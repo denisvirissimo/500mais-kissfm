@@ -306,7 +306,7 @@ col1, col2, col3 = st.columns((.2, 7.1, .2))
 with col2:
     row1_1, row1_2 = st.columns((.25, 3.3), gap="small")
     with row1_1:
-        st.image('logo.png', width=75)
+        st.image('./resources/logo.png', width=75)
     with row1_2:
         st.title('As 500+ da Kiss FM')
 
