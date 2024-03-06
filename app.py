@@ -278,7 +278,13 @@ def show_data(df_data):
     st.dataframe(data=df_data.reset_index(drop=True).style.format(thousands=None), hide_index=True)
 
 #App
-st.set_page_config(layout="wide")
+st.set_page_config(layout="wide", 
+                  page_icon="./resources/favicon.ico", 
+                  menu_items={
+                      'Get Help': 'https://github.com/denisvirissimo/500mais-kissfm',
+                      'Report a bug': "https://github.com/denisvirissimo/500mais-kissfm/issues",
+                      'About': "Desenvolvido por [Denis Bruno Viríssimo](https://www.linkedin.com/in/denisbruno/)"
+                  })
 df_listagem = load_data("./data/500+.csv")
 
 list_aspectos = {"Músicas por Artista":['Artista', 'Edicao'],"Álbuns por Artista":['Album_Single', 'Edicao']}
