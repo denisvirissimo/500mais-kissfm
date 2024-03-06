@@ -146,17 +146,17 @@ No ano de 23/24 a Kiss integrou na listagem das 500+ pela primeira vez músicas 
 
 O primeiro resultado interessante da análise é ver a evolução da quantidade de músicas distintas que foram sendo incorporados a cada novo ano, chegando a um total de 2163 músicas. Uma crescente maior nos primeiros anos (por razões óbvias) e se estabilizando ao longo do tempo, voltando a crescer novamente em 23/24, pelas razões já <a href="#o-ano-de-2324">explicadas anteriormente</a>.
 
-![Evolução de músicas distintas ao longo dos anos](evolucao_musicas.png "Evolução de músicas distintas ao longo dos anos")
+![Evolução de músicas distintas ao longo dos anos](./resources/evolucao_musicas.png "Evolução de músicas distintas ao longo dos anos")
 
 Outra análise é ver a quantidade de músicas distintas por década de seu lançamento. Como esperado, há um domínio de músicas das décadas de 70 e 80 (com a década de 70 ligeiramente à frente), uma vez que foram os anos de ouro do classic rock.
 
-![Contagem de músicas por décadas de lançamento](musicas_decadas.png "Contagem de músicas por décadas de lançamento")
+![Contagem de músicas por décadas de lançamento](./resources/musicas_decadas.png "Contagem de músicas por décadas de lançamento")
 
 De todas as 2163 músicas até agora já tocadas na programação das 500+ nesses 24 anos, interessante notar que apenas 15 delas estiveram presentes em todas as edições (sem contar <a href="#o-caso-de-another-brick-in-the-wall">"Another Brick in the Wall"</a>), o que representa 0,69%.
 
 Entre essas, as maiores vencedoras das 500+, "Stairway to Heaven" e "Bohemian Rhapsody" acumulam 16 vitórias, sendo 10 para a primeira e 6 para a segunda.
 
-![Mapa de calor de músicas que apareceram em todas as edições](mapa_calor_musicas.png "Mapa de calor de músicas que apareceram em todas as edições")
+![Mapa de calor de músicas que apareceram em todas as edições](./resources/mapa_calor_musicas.png "Mapa de calor de músicas que apareceram em todas as edições")
 
 Nenhuma música conquistou um "tricampeonato". "Stairway to Heaven" tem 4 bicampeonatos.
 
