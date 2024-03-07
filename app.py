@@ -6,6 +6,8 @@ import plotly.graph_objects as go
 import streamlit as st
 import streamlit.components.v1 as components
 import io
+import bar_chart_race as bcr
+import base64
 
 #Configuração
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
@@ -277,6 +279,21 @@ def plotar_mapa_calor(df_data):
 
     st.plotly_chart(fig, use_container_width=True, config = config)
 
+@st.cache_data
+def plotar_grafico_race(df_data):
+    df_data = filtrar_inconsistencias(df_data)
+    df_data = (df_data.groupby(['Ano', 'Artista'])
+                  .size()
+                  .reset_index(name='Count')
+                  .groupby(['Ano', 'Artista'])['Count']
+                  .sum()
+                  .groupby(level='Artista')
+                  .cumsum()
+                  .reset_index())
+    df_data = df_data.sort_values(by='Count', ascending=False).groupby('Ano').head(len(df_data))
+    df_values, df_ranks = bcr.prepare_long_data(df_data, index='Ano', columns='Artista', values='Count', steps_per_period=1)
+    return bcr.bar_chart_race(df_values, n_bars=10, steps_per_period=15, period_length=1000, title = 'Top 10 Artistas com mais músicas nas edições', period_template='{x:.0f}', fixed_max=True, filter_column_colors=True).data
+
 def get_componente_top10(df_data):
     html = load_css()
     html+="""
@@ -436,12 +453,22 @@ with col2:
         st.markdown('E tivemos música repetida? **' + info.get_repetidas() + '**!')
 
     with tab_edicoes:
-    
-        row6_1, row6_2= st.columns((3.5, 3.5), gap="small")
+
+        row6_1, row6_2= st.columns((3.8, 3.8), gap="small")
 
         with row6_1:
             st.subheader('Top 10 de todas as edições')
             get_componente_top10(get_top_n_todas_edicoes(df_listagem, 10))
+
+        with row6_2:
+
+            html_str = plotar_grafico_race(df_listagem)
+
+            start = html_str.find('base64,')+len('base64,')
+            end = html_str.find('">')
+
+            video = base64.b64decode(html_str[start:end])
+            st.video(video)
 
         st.divider()
 
