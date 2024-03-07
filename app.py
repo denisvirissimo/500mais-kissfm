@@ -473,7 +473,7 @@ with col2:
       with row6_1:
           st.subheader('Top 10 de todas as edições')
           get_componente_top10(get_top_n_todas_edicoes(df_listagem, 10))
-
+          st.caption('Para entender como essa lista foi criada, consulte [a explicação](https://github.com/denisvirissimo/500mais-kissfm?tab=readme-ov-file#as-maiores-de-todos-os-tempos).')
       st.divider()
 
       st.subheader('Mapa de calor de músicas presentes em todas as edições')
