@@ -452,29 +452,6 @@ with col2:
 
         st.markdown('E tivemos música repetida? **' + info.get_repetidas() + '**!')
 
-    with tab_edicoes:
-
-        row6_1, row6_2= st.columns((3.8, 3.8), gap="small")
-
-        with row6_1:
-            st.subheader('Top 10 de todas as edições')
-            get_componente_top10(get_top_n_todas_edicoes(df_listagem, 10))
-
-        with row6_2:
-
-            html_str = plotar_grafico_race(df_listagem)
-
-            start = html_str.find('base64,')+len('base64,')
-            end = html_str.find('">')
-
-            video = base64.b64decode(html_str[start:end])
-            st.video(video)
-
-        st.divider()
-
-        st.subheader('Mapa de calor de músicas presentes em todas as edições')
-        plotar_mapa_calor(get_musicas_todos_anos(df_listagem))
-
     with tab_analises:
         st.subheader('Análises por edição')
 
@@ -488,3 +465,26 @@ with col2:
                                 medida_edicao_selecionada,
                                 "Edições",
                                 medida_edicao_selecionada + ' de ' + aspecto_edicao_selecionado)
+
+    with tab_edicoes:
+
+      row6_1, row6_2= st.columns((3.8, 3.8), gap="small")
+
+      with row6_1:
+          st.subheader('Top 10 de todas as edições')
+          get_componente_top10(get_top_n_todas_edicoes(df_listagem, 10))
+
+      st.divider()
+
+      st.subheader('Mapa de calor de músicas presentes em todas as edições')
+      plotar_mapa_calor(get_musicas_todos_anos(df_listagem))
+
+      with row6_2:
+
+          html_str = plotar_grafico_race(df_listagem)
+
+          start = html_str.find('base64,')+len('base64,')
+          end = html_str.find('">')
+
+          video = base64.b64decode(html_str[start:end])
+          st.video(video)
