@@ -319,7 +319,7 @@ def get_componente_top10(df_data):
 
 @st.cache_data
 def load_css():
-    with open('style.css') as f:
+    with open('./resources/style.css') as f:
         return f'<style>{f.read()}</style>'
 
 @st.cache_data
@@ -396,7 +396,7 @@ with col2:
 
     st.divider()
 
-    tab_geral, tab_edicao, tab_edicoes, tab_analises, tab_curiosidades = st.tabs(["Visão Geral", "Por Edição", "Todas as Edições", "Análises", "Curiosidades"])
+    tab_geral, tab_edicao, tab_edicoes, tab_analises = st.tabs(["Visão Geral", "Por Edição", "Todas as Edições", "Análises"])
 
     with tab_geral:
         st.subheader('Evolução de músicas distintas ao longo dos anos')
@@ -480,6 +480,8 @@ with col2:
       plotar_mapa_calor(get_musicas_todos_anos(df_listagem))
 
       with row6_2:
+
+          st.subheader(' ')
 
           html_str = plotar_grafico_race(df_listagem)
 
