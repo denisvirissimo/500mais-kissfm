@@ -1,5 +1,6 @@
 pandas<=1.5.3
 numpy<=1.25.2
 plotly<=5.15.0
+ipython<=7.34.0
 streamlit
 git+https://github.com/dexplo/bar_chart_race.git@master
