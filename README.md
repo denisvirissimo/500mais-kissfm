@@ -1,6 +1,8 @@
 # 500mais-kissfm
 Projeto de DataScience da lista das 500 mais da Kiss FM.
 
+A aplicação interativa com todas as análises aqui descritas está disponível em [https://500maiskissfm.streamlit.app/](https://500maiskissfm.streamlit.app/)
+
 # Tratamento de dados
 
 Antes da análise dos dados relativos à todos os anos das 500+ da Kiss FM foi necessário agrega-los. Os itens a seguir descrevem todo esse processo. 
