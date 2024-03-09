@@ -209,14 +209,10 @@ def get_analise_periodo(df_data, medida, agregador):
     df =  filtrar_inconsistencias(df_data)
     df = df.groupby(agregador)['Musica'].count().reset_index(name='Contagem')
     match medida:
-        case 'Contagem':
-            df = df.groupby('Edicao').sum().reset_index()
         case 'Média':
             df = df.groupby('Edicao')['Contagem'].mean().reset_index(name=medida)
         case 'Mediana':
             df = df.groupby('Edicao')['Contagem'].median().reset_index(name=medida)
-        case 'Mínimo':
-            df = df.groupby('Edicao')['Contagem'].min().reset_index(name=medida)
         case 'Máximo':
             df = df.groupby('Edicao')['Contagem'].max().reset_index(name=medida)
         case default:
@@ -226,7 +222,7 @@ def get_analise_periodo(df_data, medida, agregador):
 
 def plotar_grafico_barra(df_data, xdata, ydata, xlabel, ylabel, x_diagonal=False):
     fig = px.bar(df_data, x=xdata, y=ydata, text_auto=True)
-    fig.update_layout(xaxis_type='category', xaxis_title = xlabel, yaxis_title=ylabel)
+    fig.update_layout(xaxis_type='category', xaxis_title = xlabel, yaxis_title=ylabel, separators=',.')
     fig.update_traces(marker_color='#C50B11', hovertemplate=xlabel + ": %{x}<br>" + ylabel + ": %{y}", textangle=0)
     if x_diagonal:
         fig.update_xaxes(tickangle=-45)
@@ -338,7 +334,7 @@ df_listagem = load_data("./data/500+.csv")
 
 list_aspectos = {"Músicas por Artista":['Artista', 'Edicao'],"Álbuns por Artista":['Album_Single', 'Edicao']}
 list_variaveis = {"Artista": 'Artista', "Música": 'Musica', "Álbum/Single": 'Album'}
-medidas = ["Contagem", "Média", "Mediana", "Máximo", "Mínimo"]
+medidas = ["Média", "Mediana", "Máximo"]
 
 #Sidebar
 st.sidebar.subheader('Filtros')
