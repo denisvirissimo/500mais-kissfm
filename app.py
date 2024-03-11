@@ -11,6 +11,7 @@ import base64
 
 #Configuração
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+pd.set_option("styler.render.max_elements", 300000)
 
 class Info:
 
