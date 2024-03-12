@@ -68,7 +68,15 @@ Em alguns casos, apenas o ano (ou mês e ano) do lançamento foi identificado. D
 
 Todos os álbuns têm pelo menos o ano preenchido corretamente.
 
-Considerando que neste momento a análise dos dados neste projeto de DataScience será focada somente no ano, não haverá prejuízo. A busca por essa informação seguirá em andamento para refinar os dados. 
+Considerando que neste momento a análise dos dados neste projeto de DataScience será focada somente no ano, não haverá prejuízo. A busca por essa informação seguirá em andamento para refinar os dados.
+
+### País
+
+O país de origem dos artistas foi incluído com base em alguns critérios. O primeiro, a partir da reconciliação automática dos dados da Wikidata (explicado a seguir). O segundo, para o caso das bandas, prevaleceu o local de formação da mesma. No caso de artistas solo, o local de nascimento.
+
+Para músicas com colaborações e/ou participações, prevaleceu o país do artista principal.
+
+Por fim, optou-se por considerar todas as músicas pertencentes ao Reino Unido como Reino Unido em si mesmo, em vez de separar em Inglaterra, Escócia, Irlanda do Norte e País de Gales. Essa decisão foi tomada com base na análise de outros rankings de músicas que costumam considerar dessa forma (o dado original foi mantido na coluna "Country" do dataset).
 
 ## Reconciliação (via Wikidata)
 
