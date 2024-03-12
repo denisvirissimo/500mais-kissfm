@@ -58,12 +58,16 @@ class Info:
 
 #Inicialização
 @st.cache_data
-def load_data(dataset):
+def load_data(dataset, manter_another_brick):
     df_data = pd.read_csv(dataset)
     df_data['Id'] = range(1, len(df_data) + 1)
     df_data['Edicao'] = df_data.Ano.astype(str).str[-2:] + "-" + (df_data.Ano +1).astype(str).str[-2:]
     df_data['Data_Lancamento_Album'] = pd.to_datetime(df_data['Data_Lancamento_Album'])
     df_data['Decada_Lancamento_Album'] = df_data['Data_Lancamento_Album'].dt.year.apply(get_decada)
+
+    if (not manter_another_brick):
+        df_data.loc[df_data['Musica'].str.contains('Another Brick', na=False), 'Musica'] = 'Another Brick in the Wall'
+
     return df_data
 
 #Funções
@@ -368,7 +372,7 @@ st.set_page_config(layout="wide",
                       'Report a bug': "https://github.com/denisvirissimo/500mais-kissfm/issues",
                       'About': "Desenvolvido por [Denis Bruno Viríssimo](https://www.linkedin.com/in/denisbruno/)"
                   })
-df_listagem = load_data("./data/500+.csv")
+df_listagem = load_data("./data/500+.csv", st.session_state.opt_pink_floyd)
 
 list_aspectos = {"Músicas por Artista":['Artista', 'Edicao'],"Álbuns por Artista":['Album_Single', 'Edicao']}
 list_variaveis = {"Artista": 'Artista', "Música": 'Musica', "Álbum/Single": 'Album'}
@@ -389,6 +393,10 @@ posicao_inicial, posicao_final = st.sidebar.select_slider('Selecione as posiçõ
 df_listagem_filtrada = filtrar_posicoes(df_listagem_filtrada, posicao_inicial, posicao_final)
 
 st.sidebar.caption('Estes filtros se aplicam somente às abas Visão Geral e Análises.')
+
+st.sidebar.subheader('Opções')
+
+st.sidebar.toggle('Múltiplas versões de Another Brick in the Wall', key='opt_pink_floyd', help='[Clique aqui](https://github.com/denisvirissimo/500mais-kissfm#o-caso-de-another-brick-in-the-wall) para entender.')
 
 col1, col2, col3 = st.columns((.2, 7.1, .2))
 
@@ -525,7 +533,7 @@ with col2:
       with row6_1:
           st.subheader('Top 10 de todas as edições')
           get_componente_top10(get_top_n_todas_edicoes(df_listagem, 10))
-          st.caption('Para entender como essa lista foi criada, consulte [a explicação](https://github.com/denisvirissimo/500mais-kissfm?tab=readme-ov-file#as-maiores-de-todos-os-tempos).')
+          st.caption('Para entender como essa lista foi criada, consulte [a explicação](https://github.com/denisvirissimo/500mais-kissfm#as-maiores-de-todos-os-tempos).')
       st.divider()
 
       st.subheader('Mapa de calor de músicas presentes em todas as edições')
