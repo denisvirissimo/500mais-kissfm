@@ -53,6 +53,9 @@ class Info:
         else:
             return 'Sim (' + str(df_repetidas.Count.values[0]) + ')'
 
+    def get_lista_paises(self):
+        return self.df.groupby(['Edicao', 'Pais']).size().reset_index(name='Quantidade')
+
 #Inicialização
 @st.cache_data
 def load_data(dataset):
@@ -128,6 +131,17 @@ def get_musicas_todos_anos(df_data):
     df = df.loc[df['Count'] == 24].sort_values(['Ano','Posicao'])
 
     return pd.pivot(data=df, index='Musica', columns='Edicao', values='Posicao')
+
+def get_musicas_por_pais(df_data):
+    df = filtrar_inconsistencias(df_data)
+    return (df.groupby(['Edicao', 'Pais'])
+              .size()
+              .reset_index(name='Total_Musicas')
+              .groupby(['Edicao', 'Pais'])
+              .agg({'Total_Musicas': 'sum'})
+              .reset_index()
+              .sort_values(by='Edicao')
+              .sort_values(by='Total_Musicas', ascending=True))
 
 def get_musicas_media_posicao(df_data):
     #Fórmula Si = wi * Ai + (1 - wi) * S, em que:
@@ -246,6 +260,29 @@ def plotar_grafico_barra_horizontal(df_data, xdata, ydata, xlabel, ylabel, x_dia
 
     st.plotly_chart(fig, use_container_width=True)
 
+def plotar_grafico_barra_stacked(df_data, xdata, ydata, ldata, xlabel, ylabel, llabel):
+    fig = px.bar(df_data, x=xdata, y=ydata, color=ldata, color_discrete_sequence=px.colors.qualitative.Dark24)
+    fig.update_layout(xaxis_type='category', xaxis_title = xlabel, yaxis_title=ylabel, legend_title=llabel, legend_traceorder="reversed")
+    fig.update_traces(hovertemplate='%{fullData.name}<br>' + xlabel + ": %{label}<br>" + ylabel + ": %{value}<extra></extra>")
+    fig.update_xaxes(categoryorder='array', categoryarray=df_data.sort_values(xdata)[xdata].to_list())
+    st.plotly_chart(fig, use_container_width=True)
+
+def plotar_grafico_pizza(df_data, valor, nomes, label_valor, label_nomes):
+    fig = px.pie(df_data, values=valor, names=nomes)
+    fig.update_traces(textposition='inside', textinfo='percent+label', hovertemplate=label_nomes + ": %{label}<br>" + label_valor + ": %{value}<br>" + 'Percentual' + ": %{percent}<br>")
+    fig.update_layout(
+        separators=',.',
+        uniformtext_minsize=12, uniformtext_mode='hide',
+        legend=dict(font=dict(size=14)),
+        margin=dict(
+            l=0,
+            r=0,
+            b=20,
+            t=50,
+            pad=0
+        ))
+    st.plotly_chart(fig, use_container_width=True)
+
 def plotar_mapa_calor(df_data):
     fig = go.Figure(data=go.Heatmap(
                         z=df_data,
@@ -277,7 +314,7 @@ def plotar_mapa_calor(df_data):
     st.plotly_chart(fig, use_container_width=True, config = config)
 
 @st.cache_data
-def plotar_grafico_race(df_data):
+def plotar_grafico_race(df_data, show_spinner='Gerando gráfico de corrida...'):
     df_data = filtrar_inconsistencias(df_data)
     df_data = (df_data.groupby(['Ano', 'Artista'])
                   .size()
@@ -373,7 +410,7 @@ with col2:
     st.text('')
     st.subheader("Exibindo os seguintes dados a partir dos filtros:")
 
-    row2_1, row2_2, row2_3, row2_4 = st.columns((1.6, 1.6, 1.6, 1.6), gap="medium")
+    row2_1, row2_2, row2_3, row2_4, row2_5 = st.columns((1.6, 1.6, 1.6, 1.6, 1.6), gap="medium")
     with row2_1:
         total_musicas = df_listagem_filtrada.Id.nunique()
         str_total_musicas = "🎶 " + locale.format_string("%d", total_musicas, grouping = True) + " músicas no total"
@@ -390,6 +427,10 @@ with col2:
         total_albuns = len(np.unique(df_listagem_filtrada.Album_Single.dropna().astype(str)).tolist())
         str_total_albuns = "💿 " + locale.format_string("%d", total_albuns, grouping = True) + " álbum(s)/single(s)"
         st.markdown(str_total_albuns)
+    with row2_5:
+        total_paises = len(np.unique(df_listagem_filtrada.Pais.dropna()).tolist())
+        str_total_paises = "🌎 " + locale.format_string("%d", total_paises, grouping = True) + " países representados"
+        st.markdown(str_total_paises)
 
     st.divider()
 
@@ -403,11 +444,11 @@ with col2:
 
         st.subheader('Artistas, Músicas e Álbuns no Topo')
 
-        row4_1, row4_2 = st.columns((2, 5), gap="large")
-        with row4_1:
+        row3_1, row3_2 = st.columns((2, 5), gap="large")
+        with row3_1:
             top_n = st.slider('Qual Top N você deseja visualizar?', 1, 50, 3)
             variavel_topn_selecionada = st.selectbox ("Escolha a variável para visualizar no Top", list(list_variaveis.keys()), key = 'variavel_topn')
-        with row4_2:
+        with row3_2:
             match list_variaveis[variavel_topn_selecionada]:
                 case 'Artista':
                     st.dataframe(data=get_artistas_top_n(df_listagem_filtrada, top_n), hide_index=True, use_container_width=True, height=400, column_config={"Artista":"Artista", "Total_Aparicoes": "Número Total de Aparições"})
@@ -428,26 +469,40 @@ with col2:
         st.subheader('Músicas distintas por Década de Lançamento')
         plotar_grafico_barra(get_musicas_decada_lancamento(df_listagem_filtrada), "Decada_Lancamento_Album", "Total_Musicas", "Décadas", "Quantidade de Músicas distintas")
 
+        st.divider()
+
+        st.subheader('Músicas distintas por País do Artista')
+        plotar_grafico_barra_stacked(get_musicas_por_pais(df_listagem_filtrada), "Edicao", "Total_Musicas", "Pais", "Edições", "Músicas por País", "Países")
+
+
     with tab_edicao:
 
         st.markdown('Escolha uma edição e veja algumas informações relavantes:')
 
-        row5_1, row5_2= st.columns((1.5, 6.2), gap="small")
-        with row5_1:
+        row4_1, row4_2= st.columns((1.5, 6.2), gap="small")
+        with row4_1:
             anos = np.array(np.unique(df_listagem.Ano).tolist())
             list_edicoes = dict(zip(edicoes, anos))
             edicao_selecionada = st.selectbox ("Edição", list_edicoes.keys(), key = 'edicao_selecionada')
 
         st.divider()
 
-        info = Info(df_listagem, list_edicoes[edicao_selecionada])
+        row5_1, row5_2= st.columns((3.2, 3.2), gap="large")
 
-        st.markdown('Neste ano a 1ª posição ficou com **' + info.get_musica_posicao(1) + '** e a posição de número 500 com **' + info.get_musica_posicao(500) + '**.')
+        with row5_1:
+            st.subheader('Dados Gerais')
+            info = Info(df_listagem, list_edicoes[edicao_selecionada])
 
-        st.markdown('O Artista em que mais apareceu na listagem foi **' + info.get_top_artista() + '**.')
-        st.markdown('Já o Álbum/Single com mais músicas na lista foi **' + info.get_top_album() + '**.')
+            st.markdown('Neste ano a 1ª posição ficou com **' + info.get_musica_posicao(1) + '** e a posição de número 500 com **' + info.get_musica_posicao(500) + '**.')
 
-        st.markdown('E tivemos música repetida? **' + info.get_repetidas() + '**!')
+            st.markdown('O Artista em que mais apareceu na listagem foi **' + info.get_top_artista() + '**.')
+            st.markdown('Já o Álbum/Single com mais músicas na lista foi **' + info.get_top_album() + '**.')
+
+            st.markdown('E tivemos música repetida? **' + info.get_repetidas() + '**!')
+
+        with row5_2:
+            st.subheader('Países dos Artistas na Edição')
+            plotar_grafico_pizza(info.get_lista_paises(), 'Quantidade', 'Pais', 'Músicas', 'País')
 
     with tab_analises:
         st.subheader('Análises por edição')
@@ -478,8 +533,7 @@ with col2:
 
       with row6_2:
 
-          st.subheader(' ')
-
+          st.subheader('')
           html_str = plotar_grafico_race(df_listagem)
 
           start = html_str.find('base64,')+len('base64,')
