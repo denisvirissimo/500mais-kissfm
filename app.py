@@ -317,8 +317,8 @@ def plotar_mapa_calor(df_data):
 
     st.plotly_chart(fig, use_container_width=True, config = config)
 
-@st.cache_data
-def plotar_grafico_race(df_data, show_spinner='Gerando gráfico de corrida...'):
+@st.cache_data(show_spinner='Gerando gráfico de corrida...')
+def plotar_grafico_race(df_data):
     df_data = filtrar_inconsistencias(df_data)
     df_data = (df_data.groupby(['Ano', 'Artista'])
                   .size()
