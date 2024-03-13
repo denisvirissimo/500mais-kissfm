@@ -372,6 +372,10 @@ st.set_page_config(layout="wide",
                       'Report a bug': "https://github.com/denisvirissimo/500mais-kissfm/issues",
                       'About': "Desenvolvido por [Denis Bruno Viríssimo](https://www.linkedin.com/in/denisbruno/)"
                   })
+
+if 'opt_pink_floyd' not in st.session_state:
+    st.session_state.opt_pink_floyd = True
+
 df_listagem = load_data("./data/500+.csv", st.session_state.opt_pink_floyd)
 
 list_aspectos = {"Músicas por Artista":['Artista', 'Edicao'],"Álbuns por Artista":['Album_Single', 'Edicao']}
