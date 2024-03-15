@@ -12,6 +12,10 @@ import base64
 #Configuração
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 pd.set_option("styler.render.max_elements", 300000)
+dataset_file = './data/500+.csv'
+css_file = './resources/style.css'
+logo_file = './resources/logo.png''
+icon_file = './resources/favicon.ico'
 
 class Info:
 
@@ -58,14 +62,14 @@ class Info:
 
 #Inicialização
 @st.cache_data
-def load_data(dataset, manter_another_brick):
+def load_data(dataset, agregar_pinkfloyd):
     df_data = pd.read_csv(dataset)
     df_data['Id'] = range(1, len(df_data) + 1)
     df_data['Edicao'] = df_data.Ano.astype(str).str[-2:] + "-" + (df_data.Ano +1).astype(str).str[-2:]
     df_data['Data_Lancamento_Album'] = pd.to_datetime(df_data['Data_Lancamento_Album'])
     df_data['Decada_Lancamento_Album'] = df_data['Data_Lancamento_Album'].dt.year.apply(get_decada)
 
-    if (not manter_another_brick):
+    if (agregar_pinkfloyd):
         df_data.loc[df_data['Musica'].str.contains('Another Brick', na=False), 'Musica'] = 'Another Brick in the Wall'
 
     return df_data
@@ -317,7 +321,7 @@ def plotar_mapa_calor(df_data):
 
     st.plotly_chart(fig, use_container_width=True, config = config)
 
-@st.cache_data(show_spinner='Gerando gráfico de corrida...')
+@st.cache_resource(show_spinner='Gerando gráfico de corrida...')
 def plotar_grafico_race(df_data):
     df_data = filtrar_inconsistencias(df_data)
     df_data = (df_data.groupby(['Ano', 'Artista'])
@@ -357,7 +361,7 @@ def get_componente_top10(df_data):
 
 @st.cache_data
 def load_css():
-    with open('./resources/style.css') as f:
+    with open(css_file) as f:
         return f'<style>{f.read()}</style>'
 
 @st.cache_data
@@ -366,7 +370,7 @@ def show_data(df_data):
 
 #App
 st.set_page_config(layout="wide", 
-                  page_icon="./resources/favicon.ico", 
+                  page_icon=icon_file, 
                   menu_items={
                       'Get Help': 'https://github.com/denisvirissimo/500mais-kissfm',
                       'Report a bug': "https://github.com/denisvirissimo/500mais-kissfm/issues",
@@ -374,13 +378,14 @@ st.set_page_config(layout="wide",
                   })
 
 if 'opt_pink_floyd' not in st.session_state:
-    st.session_state.opt_pink_floyd = True
+    st.session_state.opt_pink_floyd = False
 
-df_listagem = load_data("./data/500+.csv", st.session_state.opt_pink_floyd)
+df_listagem = load_data(dataset_file, st.session_state.opt_pink_floyd)
 
 list_aspectos = {"Músicas por Artista":['Artista', 'Edicao'],"Álbuns por Artista":['Album_Single', 'Edicao']}
 list_variaveis = {"Artista": 'Artista', "Música": 'Musica', "Álbum/Single": 'Album'}
 medidas = ["Média", "Mediana", "Máximo"]
+
 
 #Sidebar
 st.sidebar.subheader('Filtros')
@@ -400,14 +405,14 @@ st.sidebar.caption('Estes filtros se aplicam somente às abas Visão Geral e An�
 
 st.sidebar.subheader('Opções')
 
-st.sidebar.toggle('Múltiplas versões de Another Brick in the Wall', key='opt_pink_floyd', help='[Clique aqui](https://github.com/denisvirissimo/500mais-kissfm#o-caso-de-another-brick-in-the-wall) para entender.')
+st.sidebar.toggle('Agregar múltiplas versões de Another Brick in the Wall', key='opt_pink_floyd', help='[Clique aqui](https://github.com/denisvirissimo/500mais-kissfm#o-caso-de-another-brick-in-the-wall) para entender.')
 
 col1, col2, col3 = st.columns((.2, 7.1, .2))
 
 with col2:
     row1_1, row1_2 = st.columns((.25, 3.3), gap="small")
     with row1_1:
-        st.image('./resources/logo.png', width=75)
+        st.image(logo_file, width=75)
     with row1_2:
         st.title('As 500+ da Kiss FM')
 
@@ -546,7 +551,7 @@ with col2:
       with row6_2:
 
           st.subheader('')
-          html_str = plotar_grafico_race(df_listagem)
+          html_str = plotar_grafico_race(load_data(dataset_file, False))
 
           start = html_str.find('base64,')+len('base64,')
           end = html_str.find('">')
