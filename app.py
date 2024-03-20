@@ -370,12 +370,13 @@ def show_data(df_data):
 
 #App
 st.set_page_config(layout="wide", 
-                  page_icon=icon_file, 
-                  menu_items={
-                      'Get Help': 'https://github.com/denisvirissimo/500mais-kissfm',
-                      'Report a bug': "https://github.com/denisvirissimo/500mais-kissfm/issues",
-                      'About': "Desenvolvido por [Denis Bruno Viríssimo](https://www.linkedin.com/in/denisbruno/)"
-                  })
+                    page_title='As 500+ da Kiss',
+                    page_icon=icon_file, 
+                    menu_items={
+                        'Get Help': 'https://github.com/denisvirissimo/500mais-kissfm',
+                        'Report a bug': "https://github.com/denisvirissimo/500mais-kissfm/issues",
+                        'About': "Desenvolvido por [Denis Bruno Viríssimo](https://www.linkedin.com/in/denisbruno/)"
+                    })
 
 if 'opt_pink_floyd' not in st.session_state:
     st.session_state.opt_pink_floyd = False
