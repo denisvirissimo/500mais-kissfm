@@ -17,7 +17,7 @@ css_file = './resources/style.css'
 logo_file = './resources/logo.png''
 icon_file = './resources/favicon.ico'
 
-class Info:
+class InfoEdicao:
 
     def __init__(self, df_data, ano):
         self.df = df_data[df_data['Ano'] == ano]
@@ -59,6 +59,26 @@ class Info:
 
     def get_lista_paises(self):
         return self.df.groupby(['Edicao', 'Pais']).size().reset_index(name='Quantidade')
+
+class InfoMusica:
+
+    def __init__(self, df_data, id_musica):
+        musica = df_data[df_data['Id'] == id_musica].Musica
+        artista = df_data[df_data['Id'] == id_musica].Artista
+
+        self.df = df_data.loc[(df_data['Artista'] == artista.values[0]) & (df_data['Musica'] == musica.values[0])]
+
+    def get_melhor_posicao(self):
+        return np.min(self.df.Posicao)
+
+    def get_pior_posicao(self):
+        return np.max(self.df.Posicao)
+
+    def get_numero_aparicoes(self):
+        return np.size(self.df.Posicao)
+
+    def get_decada(self):
+        return self.df.Decada_Lancamento_Album.values[0]
 
 #Inicialização
 @st.cache_data
@@ -115,6 +135,16 @@ def get_total_musicas_distintas(df_data):
 
 def get_musicas_distintas(df_data):
     return filtrar_inconsistencias(df_data).drop_duplicates(subset=['Artista', 'Musica', 'Observacao'])
+
+@st.cache_data
+def get_dicionario_musicas(df_data):
+    df = (filtrar_inconsistencias(df_data)
+                .drop_duplicates(subset={'Artista', 'Musica'})
+                .apply(lambda row: (row['Musica'] + ' (' + row['Artista'] + ')', row['Id']), axis=1)
+                .sort_values()
+                .tolist())
+
+    return dict((y, x) for x, y in df)
 
 def get_acumulado_musicas_distintas(df_data):
     edicoes = np.unique(df_data.Edicao).tolist()
@@ -509,18 +539,18 @@ with col2:
 
         with row5_1:
             st.subheader('Dados Gerais')
-            info = Info(df_listagem, list_edicoes[edicao_selecionada])
+            info_edicao = InfoEdicao(df_listagem, list_edicoes[edicao_selecionada])
 
-            st.markdown('Neste ano a 1ª posição ficou com **' + info.get_musica_posicao(1) + '** e a posição de número 500 com **' + info.get_musica_posicao(500) + '**.')
+            st.markdown('Neste ano a 1ª posição ficou com **' + info_edicao.get_musica_posicao(1) + '** e a posição de número 500 com **' + info_edicao.get_musica_posicao(500) + '**.')
 
-            st.markdown('O Artista em que mais apareceu na listagem foi **' + info.get_top_artista() + '**.')
-            st.markdown('Já o Álbum/Single com mais músicas na lista foi **' + info.get_top_album() + '**.')
+            st.markdown('O Artista em que mais apareceu na listagem foi **' + info_edicao.get_top_artista() + '**.')
+            st.markdown('Já o Álbum/Single com mais músicas na lista foi **' + info_edicao.get_top_album() + '**.')
 
-            st.markdown('E tivemos música repetida? **' + info.get_repetidas() + '**!')
+            st.markdown('E tivemos música repetida? **' + info_edicao.get_repetidas() + '**!')
 
         with row5_2:
             st.subheader('Países dos Artistas na Edição')
-            plotar_grafico_pizza(info.get_lista_paises(), 'Quantidade', 'Pais', 'Músicas', 'País')
+            plotar_grafico_pizza(info_edicao.get_lista_paises(), 'Quantidade', 'Pais', 'Músicas', 'País')
 
     with tab_analises:
         st.subheader('Análises por edição')
@@ -548,6 +578,31 @@ with col2:
 
       st.subheader('Mapa de calor de músicas presentes em todas as edições')
       plotar_mapa_calor(get_musicas_todos_anos(df_listagem))
+
+      st.divider()
+
+      row7_1, row7_2= st.columns((3.5, 4.1), gap="small")
+      with row7_1:
+          st.subheader('Informações da música')
+
+          lista_select = get_dicionario_musicas(df_listagem)
+          musica_selecionada = st.selectbox(
+              'Escolha a música',
+              label_visibility='hidden',
+              options=lista_select.keys(),
+              index=None,
+              placeholder='Digite ou escolha a música',
+              format_func=lambda l: lista_select[l])
+          
+          st.text('')
+
+      if (musica_selecionada != None):
+          row8_1, row8_2, row8_3, row8_4 = st.columns(4)
+          info_musica = InfoMusica(filtrar_inconsistencias(df_listagem), musica_selecionada)
+          row8_1.metric(label="Melhor Posição", value=info_musica.get_melhor_posicao())
+          row8_2.metric(label="Pior Posição", value=info_musica.get_pior_posicao())
+          row8_3.metric(label="Aparições", value=info_musica.get_numero_aparicoes())
+          row8_4.metric(label="Década", value=info_musica.get_decada())
 
       with row6_2:
 
