@@ -78,6 +78,26 @@ Para músicas com colaborações e/ou participações, prevaleceu o país do art
 
 Por fim, optou-se por considerar todas as músicas pertencentes ao Reino Unido como Reino Unido em si mesmo, em vez de separar em Inglaterra, Escócia, Irlanda do Norte e País de Gales. Essa decisão foi tomada com base na análise de outros rankings de músicas que costumam considerar dessa forma (o dado original foi mantido na coluna "Country" do dataset).
 
+
+### Gênero Musical
+
+Enquadrar um artista em um único gênero musical é difícil pois a grande maioria não produz músicas em um único estilo, e esse estilo pode variar ao longo da carreira. Além disso, muitas variações de gêneros e sub-gêneros musicais podem gerar confusão. Entretanto, para esta análise uma classificação mínima foi necessária.
+
+Para isso, foi feito um cruazamento entre várias bases de dados de artistas de modo a tentar elencar o principal gênero musical:
+
+* Wikipédia
+* MusicBrainz
+* Last.fm
+* The Audio DB
+* Rate Your Music
+* Chosic
+* AllMusic
+
+Com base nos gêneros listados para um determinado artista nestas fontes, tentou-se encontrar o gênero musical que se repetiu mais entre todos, sendo este então atribuído ao artista.
+
+Após isso, os gêneros foram traduzidos para o português seguindo o que consta nas respectivas entradas na Wikipédia.
+
+
 ## Reconciliação (via Wikidata)
 
 Boa parte do processo de tratamento de dados foi automatizado por meio da funcionalidade de [reconciliação](https://openrefine.org/docs/manual/reconciling) do OpenRefine e o respectivo serviços da Wikidata.
@@ -145,7 +165,7 @@ Neste sentido, optou-se por considerar cada execução como uma música distinta
 Uma forma de corrigir essa distorção é tratar todas elas como se fosse uma só, por meio do seguinte código:
 
 ```
-df.loc[df['Musica'].str.contains('Another Brick'), 'Musica'] = 'Another Brick in the Wall'
+df.loc[df['Musica'].str.contains('Another Brick', na=False), 'Musica'] = 'Another Brick in the Wall'
 ```
 
 ### O ano de 23/24
@@ -199,4 +219,3 @@ Em função de ter ficado em 27ª em 23/24, "Stairway to Heaven" acaba ficando e
 2. Blog "LISTA das 500 MAIS da KISS FM de 2000 a 2023" - https://leitespc.blogspot.com/
 3. Blog "Álbuns de Cabeceira" - https://albunsdecabeceira.blogspot.com/
 4. Site Whiplash - https://whiplash.net/materias/melhores/195761.html, https://whiplash.net/materias/melhores/170703.html
-
