@@ -50,6 +50,18 @@ class InfoEdicao:
         top_album['Str'] = top_album.Artista + ' - ' + top_album.Album_Single + ' (' + top_album.Count.astype(str) + ')'
         return ', '.join(top_album.Str)
 
+    def get_top_genero(self):
+        top_genero = (self.df.groupby('Genero')
+                       .size()
+                       .reset_index(name='Count')
+                       .sort_values(by='Count', ascending=False))
+        top_genero = (top_genero[top_genero['Count'] == top_genero
+                                   .drop_duplicates(subset='Count')
+                                   .head(1)['Count']
+                                   .values[0]])
+        top_genero['Str'] = top_genero.Genero + ' (' + top_genero.Count.astype(str) + ')'
+        return ', '.join(top_genero.Str)
+
     def get_repetidas(self):
         df_repetidas = self.df[self.df['Observacao'] == 'repetida'].groupby('Observacao').size().reset_index(name='Count')
         if df_repetidas.empty:
@@ -59,6 +71,9 @@ class InfoEdicao:
 
     def get_lista_paises(self):
         return self.df.groupby(['Edicao', 'Pais']).size().reset_index(name='Quantidade')
+
+    def get_lista_generos(self):
+        return self.df.groupby(['Edicao', 'Genero']).size().reset_index(name='Quantidade')
 
 class InfoMusica:
 
@@ -133,8 +148,14 @@ def get_ultimo_ano_lancamento(df_data):
 def get_total_musicas_distintas(df_data):
     return len(get_musicas_distintas(df_data))
 
+def get_total_generos_distintos(df_data):
+    return len(get_generos_distintos(df_data))
+
 def get_musicas_distintas(df_data):
     return filtrar_inconsistencias(df_data).drop_duplicates(subset=['Artista', 'Musica', 'Observacao'])
+
+def get_generos_distintos(df_data):
+    return filtrar_inconsistencias(df_data).drop_duplicates(subset='Genero')
 
 @st.cache_data
 def get_dicionario_musicas(df_data):
@@ -152,6 +173,13 @@ def get_acumulado_musicas_distintas(df_data):
     for e in edicoes:
         distinta_acumulado_periodo.append(get_total_musicas_distintas(filtrar_edicao(df_data, edicoes[0], e)))
     return pd.DataFrame({'Anos': edicoes, 'Acumulado': distinta_acumulado_periodo})
+
+def get_acumulado_generos_distintos(df_data):
+    edicoes = np.unique(df_data.Edicao).tolist()
+    distinto_acumulado_periodo = []
+    for e in edicoes:
+        distinto_acumulado_periodo.append(get_total_generos_distintos(filtrar_edicao(df_data, edicoes[0], e)))
+    return pd.DataFrame({'Anos': edicoes, 'Acumulado': distinto_acumulado_periodo})
 
 def get_musicas_ano_lancamento(df_data):
     df_temp = get_musicas_distintas(df_data)
@@ -176,6 +204,17 @@ def get_musicas_por_pais(df_data):
               .size()
               .reset_index(name='Total_Musicas')
               .groupby(['Edicao', 'Pais'])
+              .agg({'Total_Musicas': 'sum'})
+              .reset_index()
+              .sort_values(by='Edicao')
+              .sort_values(by='Total_Musicas', ascending=True))
+
+def get_musicas_por_genero(df_data):
+    df = filtrar_inconsistencias(df_data)
+    return (df.groupby(['Edicao', 'Genero'])
+              .size()
+              .reset_index(name='Total_Musicas')
+              .groupby(['Edicao', 'Genero'])
               .agg({'Total_Musicas': 'sum'})
               .reset_index()
               .sort_values(by='Edicao')
@@ -248,6 +287,15 @@ def get_albuns_top_n(df_data, top_n):
     df = filtrar_posicoes(df_data, 1, top_n)
     df = (filtrar_inconsistencias(df)
           .groupby(['Artista', 'Album_Single'])
+          .size()
+          .sort_values(ascending=False)
+          .reset_index(name='Total_Aparicoes'))
+    return df
+
+def get_generos_top_n(df_data, top_n):
+    df = filtrar_posicoes(df_data, 1, top_n)
+    df = (filtrar_inconsistencias(df)
+          .groupby('Genero')
           .size()
           .sort_values(ascending=False)
           .reset_index(name='Total_Aparicoes'))
@@ -352,19 +400,26 @@ def plotar_mapa_calor(df_data):
     st.plotly_chart(fig, use_container_width=True, config = config)
 
 @st.cache_resource(show_spinner='Gerando gráfico de corrida...')
-def plotar_grafico_race(df_data):
+def gerar_grafico_race(df_data, atributo, titulo):
     df_data = filtrar_inconsistencias(df_data)
-    df_data = (df_data.groupby(['Ano', 'Artista'])
+    df_data = (df_data.groupby(['Ano', atributo])
                   .size()
                   .reset_index(name='Count')
-                  .groupby(['Ano', 'Artista'])['Count']
+                  .groupby(['Ano', atributo])['Count']
                   .sum()
-                  .groupby(level='Artista')
+                  .groupby(level=atributo)
                   .cumsum()
                   .reset_index())
     df_data = df_data.sort_values(by='Count', ascending=False).groupby('Ano').head(len(df_data))
-    df_values, df_ranks = bcr.prepare_long_data(df_data, index='Ano', columns='Artista', values='Count', steps_per_period=1)
-    return bcr.bar_chart_race(df_values, n_bars=10, steps_per_period=15, period_length=1000, title = 'Top 10 Artistas com mais músicas nas edições', period_template='{x:.0f}', fixed_max=True, filter_column_colors=True).data
+    df_values, df_ranks = bcr.prepare_long_data(df_data, index='Ano', columns=atributo, values='Count', steps_per_period=1)
+    return bcr.bar_chart_race(df_values, n_bars=10, steps_per_period=15, period_length=1000, title = titulo, period_template='{x:.0f}', fixed_max=True, filter_column_colors=True).data
+
+def plotar_grafico_race(html_data):
+    start = html_data.find('base64,') + len('base64,')
+    end = html_data.find('">')
+
+    video = base64.b64decode(html_data[start:end])
+    st.video(video)
 
 def get_componente_top10(df_data):
     html = load_css()
@@ -413,8 +468,8 @@ if 'opt_pink_floyd' not in st.session_state:
 
 df_listagem = load_data(dataset_file, st.session_state.opt_pink_floyd)
 
-list_aspectos = {"Músicas por Artista":['Artista', 'Edicao'],"Álbuns por Artista":['Album_Single', 'Edicao']}
-list_variaveis = {"Artista": 'Artista', "Música": 'Musica', "Álbum/Single": 'Album'}
+list_aspectos = {"Músicas por Artista":['Artista', 'Edicao'], "Álbuns por Artista":['Album_Single', 'Edicao'], "Músicas por Gênero":['Genero', 'Edicao']}
+list_variaveis = {"Artista": 'Artista', "Música": 'Musica', "Álbum/Single": 'Album', "Gênero": 'Genero'}
 medidas = ["Média", "Mediana", "Máximo"]
 
 
@@ -458,7 +513,7 @@ with col2:
     st.text('')
     st.subheader("Exibindo os seguintes dados a partir dos filtros:")
 
-    row2_1, row2_2, row2_3, row2_4, row2_5 = st.columns((1.6, 1.6, 1.6, 1.6, 1.6), gap="medium")
+    row2_1, row2_2, row2_3, row2_4, row2_5, row2_6 = st.columns((1.6, 1.6, 1.3, 1.6, 1.6, 1.6), gap="medium")
     with row2_1:
         total_musicas = df_listagem_filtrada.Id.nunique()
         str_total_musicas = "🎶 " + locale.format_string("%d", total_musicas, grouping = True) + " músicas no total"
@@ -469,7 +524,7 @@ with col2:
         st.markdown(str_total_musicas_distintas)
     with row2_3:
         total_artistas = len(np.unique(df_listagem_filtrada.Artista.dropna()).tolist())
-        str_total_artistas = "🧑‍🎤 " + locale.format_string("%d", total_artistas, grouping = True) + " artista(s)"
+        str_total_artistas = "👨🏽‍🎤 " + locale.format_string("%d", total_artistas, grouping = True) + " artista(s)"
         st.markdown(str_total_artistas)
     with row2_4:
         total_albuns = len(np.unique(df_listagem_filtrada.Album_Single.dropna().astype(str)).tolist())
@@ -479,6 +534,10 @@ with col2:
         total_paises = len(np.unique(df_listagem_filtrada.Pais.dropna()).tolist())
         str_total_paises = "🌎 " + locale.format_string("%d", total_paises, grouping = True) + " países representados"
         st.markdown(str_total_paises)
+    with row2_6:
+        total_generos = len(np.unique(df_listagem_filtrada.Genero.dropna()).tolist())
+        str_total_generos = "🤘 " + locale.format_string("%d", total_generos, grouping = True) + " gêneros musicais"
+        st.markdown(str_total_generos)
 
     st.divider()
 
@@ -490,7 +549,12 @@ with col2:
 
         st.divider()
 
-        st.subheader('Artistas, Músicas e Álbuns no Topo')
+        st.subheader('Evolução de gêneros musicais distintos ao longo dos anos')
+        plotar_grafico_barra(get_acumulado_generos_distintos(df_listagem_filtrada), "Anos", "Acumulado", "Edições", "Acumulado de Gêneros Musicais distintos")
+
+        st.divider()
+
+        st.subheader('Artistas, Músicas, Álbuns e Gêneros no Topo')
 
         row3_1, row3_2 = st.columns((2, 5), gap="large")
         with row3_1:
@@ -504,6 +568,8 @@ with col2:
                     st.dataframe(data=get_musicas_top_n(df_listagem_filtrada, top_n), hide_index=True, use_container_width=True, height=400, column_config={"Musica":"Música", "Total_Aparicoes": "Número Total de Aparições"})
                 case 'Album':
                     st.dataframe(data=get_albuns_top_n(df_listagem_filtrada, top_n), hide_index=True, use_container_width=True, height=400, column_config={"Album_Single":"Álbum/Single", "Total_Aparicoes": "Número Total de Aparições"})
+                case 'Genero':
+                    st.dataframe(data=get_generos_top_n(df_listagem_filtrada, top_n), hide_index=True, use_container_width=True, height=400, column_config={"Genero":"Gênero", "Total_Aparicoes": "Número Total de Aparições"})
                 case default:
                     st.write('Escolha uma opção')
 
@@ -522,6 +588,10 @@ with col2:
         st.subheader('Músicas distintas por País do Artista')
         plotar_grafico_barra_stacked(get_musicas_por_pais(df_listagem_filtrada), "Edicao", "Total_Musicas", "Pais", "Edições", "Músicas por País", "Países")
 
+        st.divider()
+
+        st.subheader('Músicas distintas por Gênero Musical do Artista')
+        plotar_grafico_barra_stacked(get_musicas_por_genero(df_listagem_filtrada), "Edicao", "Total_Musicas", "Genero", "Edições", "Músicas por Gênero Musical", "Gêneros Musicais")
 
     with tab_edicao:
 
@@ -535,7 +605,7 @@ with col2:
 
         st.divider()
 
-        row5_1, row5_2= st.columns((3.2, 3.2), gap="large")
+        row5_1, row5_2, row5_3 = st.columns((1.2, 2.6, 2.6), gap="large")
 
         with row5_1:
             st.subheader('Dados Gerais')
@@ -546,11 +616,17 @@ with col2:
             st.markdown('O Artista em que mais apareceu na listagem foi **' + info_edicao.get_top_artista() + '**.')
             st.markdown('Já o Álbum/Single com mais músicas na lista foi **' + info_edicao.get_top_album() + '**.')
 
+            st.markdown('O Gênero Musical mais tocado foi **' + info_edicao.get_top_genero() + '**.')
+
             st.markdown('E tivemos música repetida? **' + info_edicao.get_repetidas() + '**!')
 
         with row5_2:
             st.subheader('Países dos Artistas na Edição')
             plotar_grafico_pizza(info_edicao.get_lista_paises(), 'Quantidade', 'Pais', 'Músicas', 'País')
+
+        with row5_3:
+            st.subheader('Gêneros Musicais na Edição')
+            plotar_grafico_pizza(info_edicao.get_lista_generos(), 'Quantidade', 'Genero', 'Músicas', 'Gênero Musical')
 
     with tab_analises:
         st.subheader('Análises por edição')
@@ -593,7 +669,7 @@ with col2:
               index=None,
               placeholder='Digite ou escolha a música',
               format_func=lambda l: lista_select[l])
-          
+
           st.text('')
 
       if (musica_selecionada != None):
@@ -607,10 +683,12 @@ with col2:
       with row6_2:
 
           st.subheader('')
-          html_str = plotar_grafico_race(load_data(dataset_file, False))
+          plotar_grafico_race(gerar_grafico_race(
+                              load_data(dataset_file, False),
+                              'Artista',
+                              'Top 10 Artistas com mais músicas nas edições'))
 
-          start = html_str.find('base64,')+len('base64,')
-          end = html_str.find('">')
-
-          video = base64.b64decode(html_str[start:end])
-          st.video(video)
+          plotar_grafico_race(gerar_grafico_race(
+                              load_data(dataset_file, False),
+                              'Genero',
+                              'Top 10 Gêneros Musicais com mais músicas nas edições'))
