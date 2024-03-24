@@ -124,6 +124,10 @@ def filtrar_posicoes(df_data, posicao_inicial, posicao_final):
     posicoes = list(range(posicao_inicial, posicao_final + 1))
     return df_data[df_data['Posicao'].isin(posicoes)]
 
+def filtrar_anos(df_data, ano_inicial, ano_final):
+    anos = list(range(int(ano_inicial), int(ano_final) + 1))
+    return df_data[df_data['Data_Lancamento_Album'].dt.year.isin(anos)]
+
 def filtrar_inconsistencias(df_data):
     return df_data.loc[(df_data['Artista'] != '???') & (df_data['Musica'].str.len() > 0) & (df_data['Observacao'] != 'repetida')]
 
@@ -479,13 +483,18 @@ st.sidebar.text('')
 
 #Filtro Edições
 edicoes = np.array(np.unique(df_listagem.Edicao).tolist())
-edicao_inicial, edicao_final = st.sidebar.select_slider('Selecione as edições para filtrar os dados', edicoes, value = [get_primeira_edicao(df_listagem).values[0], get_ultima_edicao(df_listagem).values[0]])
+edicao_inicial, edicao_final = st.sidebar.select_slider('Filtrar por edições', edicoes, value = [get_primeira_edicao(df_listagem).values[0], get_ultima_edicao(df_listagem).values[0]])
 df_listagem_filtrada = filtrar_edicao(df_listagem, edicao_inicial, edicao_final)
 
 #Filtro Posições
 posicoes = np.unique(df_listagem.Posicao).tolist()
-posicao_inicial, posicao_final = st.sidebar.select_slider('Selecione as posições das 500+ para filtrar as análises', posicoes, value=[min(posicoes), max(posicoes)])
+posicao_inicial, posicao_final = st.sidebar.select_slider('Filtrar por posições', posicoes, value=[min(posicoes), max(posicoes)])
 df_listagem_filtrada = filtrar_posicoes(df_listagem_filtrada, posicao_inicial, posicao_final)
+
+#Filtro Ano Lançamento
+anos = np.unique(df_listagem.Data_Lancamento_Album.dropna().dt.year.apply(lambda x: f'{x:.0f}')).tolist()
+ano_inicial, ano_final = st.sidebar.select_slider('Filtrar por anos de lançamento das músicas', anos, value=[min(anos), max(anos)])
+df_listagem_filtrada = filtrar_anos(df_listagem_filtrada, ano_inicial, ano_final)
 
 st.sidebar.caption('Estes filtros se aplicam somente às abas Visão Geral e Análises.')
 
