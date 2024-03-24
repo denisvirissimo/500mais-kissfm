@@ -305,10 +305,22 @@ def get_generos_top_n(df_data, top_n):
           .reset_index(name='Total_Aparicoes'))
     return df
 
-def get_top_n_todas_edicoes(df_data, top_n):
+def get_top_n_musicas_media_posicao(df_data, top_n):
     df = get_musicas_media_posicao(df_data).loc[:,['Artista', 'Musica']]
     df['Posicao'] = range(1, len(df) + 1)
     return df[['Posicao', 'Artista', 'Musica']].head(top_n).set_index('Posicao')
+
+def get_top_n_todas_edicoes(df_data, top_n):
+    edicoes = np.unique(df_listagem.Edicao)
+    edicao_inicial = edicoes[0]
+    edicao_anterior = edicoes[len(edicoes) -2]
+    df1 = get_top_n_musicas_media_posicao(df_data, top_n).reset_index()
+    df2 = get_top_n_musicas_media_posicao(filtrar_edicao(df_data, edicao_inicial, edicao_anterior), 100).reset_index()
+
+    merged_df = pd.merge(df1, df2, how='left', on = ['Artista', 'Musica'], suffixes=('_Atual', '_Anterior'))
+    merged_df['Variacao'] = merged_df['Posicao_Anterior'] - merged_df['Posicao_Atual']
+
+    return merged_df
 
 def get_analise_periodo(df_data, medida, agregador):
     df =  filtrar_inconsistencias(df_data)
@@ -436,9 +448,15 @@ def get_componente_top10(df_data):
     """
 
     for index, row in df_data.iterrows():
-        html += '<tr class="list__row"><td class="list__cell"><span class="list__value">' + str(index) +'</span></td>'
+        html += '<tr class="list__row"><td class="list__cell"><span class="list__value">' + str(row.Posicao_Atual) +'</span></td>'
         html += '<td class="list__cell"><span class="list__value">'+row.Musica+'</span><small class="list__label"></small></td>'
-        html += '<td class="list__cell"><span class="list__value">'+row.Artista+'</span><small class="list__label"></small></td><td class="list__cell"></td></tr>'
+        html += '<td class="list__cell"><span class="list__value">'+row.Artista+'</span><small class="list__label"></small>'
+        if (row.Variacao > 0):
+            html += '</td><td class="list__cell list__icon__green">▲ ' + str(row.Variacao) + '</td></tr>'
+        elif (row.Variacao < 0):
+            html += '</td><td class="list__cell list__icon__red">▼ ' + str(row.Variacao * -1) + '</td></tr>'
+        else:
+            html += '</td><td class="list__cell list__icon__grey">■ 0</td></tr>'
 
     html+="""
             </tbody></table>
