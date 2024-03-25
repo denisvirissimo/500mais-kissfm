@@ -95,6 +95,9 @@ class InfoMusica:
     def get_decada(self):
         return self.df.Decada_Lancamento_Album.values[0]
 
+    def get_posicao_media(self):
+        return np.mean(self.df.Posicao).round(0).astype(int)
+
 #Inicialização
 @st.cache_data
 def load_data(dataset, agregar_pinkfloyd):
@@ -700,12 +703,13 @@ with col2:
           st.text('')
 
       if (musica_selecionada != None):
-          row8_1, row8_2, row8_3, row8_4 = st.columns(4)
+          row8_1, row8_2, row8_3, row8_4, row8_5 = st.columns(5)
           info_musica = InfoMusica(filtrar_inconsistencias(df_listagem), musica_selecionada)
           row8_1.metric(label="Melhor Posição", value=info_musica.get_melhor_posicao())
           row8_2.metric(label="Pior Posição", value=info_musica.get_pior_posicao())
-          row8_3.metric(label="Aparições", value=info_musica.get_numero_aparicoes())
-          row8_4.metric(label="Década", value=info_musica.get_decada())
+          row8_3.metric(label="Posição Média", value=info_musica.get_posicao_media())
+          row8_4.metric(label="Aparições", value=info_musica.get_numero_aparicoes())
+          row8_5.metric(label="Década", value=info_musica.get_decada())
 
       with row6_2:
 
