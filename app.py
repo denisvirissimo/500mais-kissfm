@@ -340,6 +340,27 @@ def get_analise_periodo(df_data, medida, agregador):
 
     return np.around(df,2)
 
+def get_idade_por_edicao(df_data):
+    df = df_data.copy()
+    df = filtrar_inconsistencias(df)
+    df['Idade_Lancamento'] = df['Ano'] + 1 - df['Data_Lancamento_Album'].dt.year
+
+    df = df.loc[:,['Edicao', 'Idade_Lancamento']]
+    df['Media_Idade_Lancamento'] = df.groupby('Edicao')['Idade_Lancamento'].transform('mean').round(2)
+    df['Mediana_Idade_Lancamento'] = df.groupby('Edicao')['Idade_Lancamento'].transform('median').round(0)
+
+    return df.groupby(['Edicao', 'Media_Idade_Lancamento', 'Mediana_Idade_Lancamento']).size().reset_index()
+
+def plotar_grafico_linha(df_data, xdata, ydata1, xlabel, ylabel1, ydata2 = None, ylabel2 = None):
+    fig = px.line()
+    fig.update_layout(xaxis_type='category', xaxis_title = xlabel, yaxis_title=ylabel1, separators=',.')
+    fig.add_scatter(x=df_data[xdata], y=df_data[ydata1], name=ylabel1)
+    if (ydata2 != None):
+        fig.add_scatter(x=df_data[xdata], y=df_data[ydata2], name=ylabel2)
+    fig.update_traces(hovertemplate=xlabel + ': %{x}<br> Valor: %{y}<extra></extra>')
+
+    st.plotly_chart(fig, use_container_width=True)
+
 def plotar_grafico_barra(df_data, xdata, ydata, xlabel, ylabel, x_diagonal=False):
     fig = px.bar(df_data, x=xdata, y=ydata, text_auto=True)
     fig.update_layout(xaxis_type='category', xaxis_title = xlabel, yaxis_title=ylabel, separators=',.')
@@ -669,7 +690,7 @@ with col2:
 
     with tab_analises:
         st.subheader('Análises por edição')
-
+        st.markdown('A análise de alguns aspectos por edição pode mostrar a diversidade de músicas, álbuns e gêneros musicais a cada edição.')
         row7_1, row7_2 = st.columns((1.5, 6.2), gap="small")
         with row7_1:
             aspecto_edicao_selecionado = st.selectbox ("Escolha o aspecto", list(list_aspectos.keys()), key = 'aspecto_edicao')
@@ -680,6 +701,13 @@ with col2:
                                 medida_edicao_selecionada,
                                 "Edições",
                                 medida_edicao_selecionada + ' de ' + aspecto_edicao_selecionado)
+
+        st.divider()
+        st.subheader('Idade das músicas')
+        st.markdown('A análise de idade das músicas demonstra se há uma tradição de votação em músicas mais antigas (especialmente da década de 70) ou se têm sido incorporadas músicas mais recentes na listagem.')
+        st.markdown('A idade é recalculada a cada edição.')
+
+        plotar_grafico_linha(get_idade_por_edicao(df_listagem_filtrada), 'Edicao', 'Media_Idade_Lancamento', 'Edições', 'Média de Idade', 'Mediana_Idade_Lancamento', 'Mediana de Idade')
 
     with tab_edicoes:
 
