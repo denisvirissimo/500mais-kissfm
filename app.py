@@ -205,16 +205,19 @@ def get_musicas_todos_anos(df_data):
 
     return pd.pivot(data=df, index='Musica', columns='Edicao', values='Posicao')
 
-def get_musicas_por_pais(df_data):
+def get_musicas_por_pais(df_data, agrupar_edicoes=False):
     df = filtrar_inconsistencias(df_data)
-    return (df.groupby(['Edicao', 'Pais'])
-              .size()
-              .reset_index(name='Total_Musicas')
-              .groupby(['Edicao', 'Pais'])
-              .agg({'Total_Musicas': 'sum'})
-              .reset_index()
-              .sort_values(by='Edicao')
-              .sort_values(by='Total_Musicas', ascending=True))
+    if (agrupar_edicoes):
+        return df.groupby(['Country', 'Pais']).size().reset_index(name='Total_Musicas')
+    else:
+        return (df.groupby(['Edicao', 'Pais'])
+                  .size()
+                  .reset_index(name='Total_Musicas')
+                  .groupby(['Edicao', 'Pais'])
+                  .agg({'Total_Musicas': 'sum'})
+                  .reset_index()
+                  .sort_values(by='Edicao')
+                  .sort_values(by='Total_Musicas', ascending=True))
 
 def get_musicas_por_genero(df_data):
     df = filtrar_inconsistencias(df_data)
@@ -407,6 +410,11 @@ def plotar_grafico_pizza(df_data, valor, nomes, label_valor, label_nomes):
             t=50,
             pad=0
         ))
+    st.plotly_chart(fig, use_container_width=True)
+
+def plotar_mapa(df_data):
+    fig = px.choropleth(df_data, locationmode="country names", locations="Country", color='Total_Musicas', hover_name="Pais", color_continuous_scale=px.colors.sequential.YlOrRd, projection='natural earth')
+    fig.update_layout(coloraxis_colorbar=dict(title="Quantidade de Músicas"))
     st.plotly_chart(fig, use_container_width=True)
 
 def plotar_mapa_calor(df_data):
@@ -644,6 +652,11 @@ with col2:
 
         st.subheader('Músicas distintas por País do Artista')
         plotar_grafico_barra_stacked(get_musicas_por_pais(df_listagem_filtrada), "Edicao", "Total_Musicas", "Pais", "Edições", "Músicas por País", "Países")
+
+        st.divider()
+
+        st.subheader('Mapa de Países')
+        plotar_mapa(get_musicas_por_pais(df_listagem_filtrada, True))
 
         st.divider()
 
