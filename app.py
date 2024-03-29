@@ -418,6 +418,12 @@ def plotar_mapa_calor(df_data):
 
     st.plotly_chart(fig, use_container_width=True, config = config)
 
+def plotar_treemap(df_data, xdata, ydata, xlabel, ylabel):
+    fig = px.treemap(df_data, path=[px.Constant('Todos'), xdata], values=ydata, color=xdata, hover_data=[xdata])
+    fig.update_layout(margin = dict(t=50, l=25, r=25, b=25))
+    fig.update_traces(hovertemplate=xlabel + ": %{label}<br>" + ylabel + ": %{value}")
+    st.plotly_chart(fig, use_container_width=True)
+
 @st.cache_resource(show_spinner='Gerando gráfico de corrida...')
 def gerar_grafico_race(df_data, atributo, titulo):
     df_data = filtrar_inconsistencias(df_data)
@@ -657,6 +663,9 @@ with col2:
         with row5_3:
             st.subheader('Gêneros Musicais na Edição')
             plotar_grafico_pizza(info_edicao.get_lista_generos(), 'Quantidade', 'Genero', 'Músicas', 'Gênero Musical')
+
+        st.subheader('Mapa de Gêneros Músicais')
+        plotar_treemap(info_edicao.get_lista_generos(), 'Genero', 'Quantidade', 'Gênero', 'Quantidade de Músicas')
 
     with tab_analises:
         st.subheader('Análises por edição')
