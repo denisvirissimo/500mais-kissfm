@@ -98,6 +98,42 @@ class InfoMusica:
     def get_posicao_media(self):
         return np.mean(self.df.Posicao).round(0).astype(int)
 
+class InfoCuriosidade:
+    
+    def __init__(self, df_data):
+        self.df = df_data
+        
+    def __agrupar_dataframe(self, agregador):
+        return self.df.groupby(agregador).size().reset_index(name = 'Count')
+    
+    def get_primeiro_artista_br(self):
+        df = self.df[self.df['Pais'] == 'Brasil'].sort_values(['Ano', 'Posicao'], ascending=False).tail(1)
+        return [df.Artista.values[0], df.Ano.values[0], df.Posicao.values[0]]
+    
+    def get_edicao_menos_artistas(self):
+        df = self.__agrupar_dataframe(['Edicao', 'Artista']).groupby('Edicao')['Count'].count().reset_index().sort_values('Count')
+        return [df.head(1).Edicao.values[0], df.head(1).Count.values[0]]
+    
+    def get_edicao_mais_artistas(self):
+        df = self.__agrupar_dataframe(['Edicao', 'Artista']).groupby('Edicao')['Count'].count().reset_index().sort_values('Count')
+        return [df.tail(1).Edicao.values[0], df.tail(1).Count.values[0]]
+    
+    def get_album_mais_musicas(self):
+        df = self.__agrupar_dataframe(['Album_Single', 'Artista']).sort_values('Count').tail(1)
+        return [df.Artista.values[0], df.Album_Single.values[0], df.Count.values[0], np.round(df.Count.values[0]/len(self.df)*100,2)]
+    
+    def get_artista_mais_musicas_edicao(self):
+        df = self.__agrupar_dataframe(['Edicao', 'Artista']).sort_values('Count').tail(1)
+        return [df.Artista.values[0], df.Count.values[0], df.Edicao.values[0]]
+    
+    def get_album_mais_musicas_edicao(self):
+        df = self.__agrupar_dataframe(['Edicao', 'Album_Single']).sort_values('Count').sort_values('Count').tail(1)
+        return [df.Album_Single.values[0], df.Count.values[0], df.Edicao.values[0]]
+    
+    def get_artista_maior_percentual(self):
+        df = self.__agrupar_dataframe(['Artista']).sort_values('Count').tail(1)
+        return [df.Artista.values[0], df.Count.values[0], np.round(df.Count.values[0]/len(self.df)*100,2)]
+
 #Inicialização
 @st.cache_data
 def load_data(dataset, agregar_pinkfloyd):
@@ -606,7 +642,7 @@ with col2:
 
     st.divider()
 
-    tab_geral, tab_edicao, tab_edicoes, tab_analises = st.tabs(["Visão Geral", "Por Edição", "Todas as Edições", "Análises"])
+    tab_geral, tab_edicao, tab_edicoes, tab_analises, tab_curiosidades = st.tabs(["Visão Geral", "Por Edição", "Todas as Edições", "Análises", "Curiosidades"])
 
     with tab_geral:
         st.subheader('Evolução de músicas distintas ao longo dos anos')
@@ -721,6 +757,31 @@ with col2:
         st.markdown('A idade é recalculada a cada edição.')
 
         plotar_grafico_linha(get_idade_por_edicao(df_listagem_filtrada), 'Edicao', 'Media_Idade_Lancamento', 'Edições', 'Média de Idade', 'Mediana_Idade_Lancamento', 'Mediana de Idade')
+
+    with tab_curiosidades:
+
+        info_curiosidades = InfoCuriosidade(filtrar_inconsistencias(df_listagem))
+
+        curiosidade = info_curiosidades.get_primeiro_artista_br()
+        st.markdown('* A primeira aparição de um artista brasileiro foi em {} com {}, ficando na {}ª posição.'.format(curiosidade[1], curiosidade[0], curiosidade[2]))
+
+        curiosidade = info_curiosidades.get_edicao_menos_artistas()
+        st.markdown('* A edição com menos artistas foi a {}, contando com "apenas" {} artistas.'.format(curiosidade[0], curiosidade[1]))
+
+        curiosidade = info_curiosidades.get_edicao_mais_artistas()
+        st.markdown('* Já a edição com mais artistas foi a {}, com {} artistas.'.format(curiosidade[0], curiosidade[1]))
+
+        curiosidade = info_curiosidades.get_artista_mais_musicas_edicao()
+        st.markdown('* O recorde de mais músicas em uma única edição é de {} com impressionantes {} músicas na edição {}.'.format(curiosidade[0], curiosidade[1], curiosidade[2]))
+
+        curiosidade = info_curiosidades.get_album_mais_musicas_edicao()
+        st.markdown('* O álbum/single com mais músicas em uma única edição é {} com {} músicas na edição {}.'.format(curiosidade[0], curiosidade[1], curiosidade[2]))
+
+        curiosidade = info_curiosidades.get_album_mais_musicas()
+        st.markdown('* O álbum/single com mais músicas em todas as edições é {} de {}, com {} músicas. Isto representa {} % de todas as músicas.'.format(curiosidade[1], curiosidade[0], curiosidade[2], curiosidade[3]))
+
+        curiosidade = info_curiosidades.get_artista_maior_percentual()
+        st.markdown('* {} é o artista com maior número de músicas: {}, o que representa {} % do total de músicas.'.format(curiosidade[0], curiosidade[1], curiosidade[2]))
 
     with tab_edicoes:
 
