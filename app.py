@@ -364,6 +364,11 @@ def get_top_n_todas_edicoes(df_data, top_n):
 
     return merged_df
 
+def get_melhor_posicao_genero(df_data):
+    df = df = df_data.sort_values('Ano')
+    indexes = df.groupby(['Genero'])['Posicao'].idxmin()
+    return df.loc[indexes, ['Genero', 'Posicao', 'Edicao']]
+
 def get_analise_periodo(df_data, medida, agregador):
     df =  filtrar_inconsistencias(df_data)
     df = df.groupby(agregador)['Musica'].count().reset_index(name='Contagem')
@@ -691,13 +696,19 @@ with col2:
 
         st.divider()
 
-        st.subheader('Mapa de Países')
-        plotar_mapa(get_musicas_por_pais(df_listagem_filtrada, True))
+        st.subheader('Músicas distintas por Gênero Musical do Artista')
+        plotar_grafico_barra_stacked(get_musicas_por_genero(df_listagem_filtrada), "Edicao", "Total_Musicas", "Genero", "Edições", "Músicas por Gênero Musical", "Gêneros Musicais")
 
         st.divider()
 
-        st.subheader('Músicas distintas por Gênero Musical do Artista')
-        plotar_grafico_barra_stacked(get_musicas_por_genero(df_listagem_filtrada), "Edicao", "Total_Musicas", "Genero", "Edições", "Músicas por Gênero Musical", "Gêneros Musicais")
+        row3_3, row3_4 = st.columns((3.5, 3.5), gap="large")
+        with row3_3:
+            st.subheader('Melhor posição de cada gênero')
+            st.dataframe(data=get_melhor_posicao_genero(df_listagem_filtrada), hide_index=True, use_container_width=True, height=400, column_config={"Genero":"Gênero", "Posicao": "Melhor Posição", "Edicao": "Edição"})
+
+        with row3_4:
+            st.subheader('Mapa de Países')
+            plotar_mapa(get_musicas_por_pais(df_listagem_filtrada, True))
 
     with tab_edicao:
 
