@@ -617,27 +617,27 @@ with col2:
     row2_1, row2_2, row2_3, row2_4, row2_5, row2_6 = st.columns((1.6, 1.6, 1.3, 1.6, 1.6, 1.6), gap="medium")
     with row2_1:
         total_musicas = df_listagem_filtrada.Id.nunique()
-        str_total_musicas = "🎶 " + locale.format_string("%d", total_musicas, grouping = True) + " músicas no total"
+        str_total_musicas = "🎶 {} músicas no total".format(locale.format_string("%d", total_musicas, grouping = True))
         st.markdown(str_total_musicas)
     with row2_2:
         total_musicas_distintas = get_total_musicas_distintas(df_listagem_filtrada)
-        str_total_musicas_distintas = "🎵 " + locale.format_string("%d", total_musicas_distintas, grouping = True) + " músicas diferentes"
+        str_total_musicas_distintas = "🎵 {} músicas diferentes".format(locale.format_string("%d", total_musicas_distintas, grouping = True))
         st.markdown(str_total_musicas_distintas)
     with row2_3:
         total_artistas = len(np.unique(df_listagem_filtrada.Artista.dropna()).tolist())
-        str_total_artistas = "👨🏽‍🎤 " + locale.format_string("%d", total_artistas, grouping = True) + " artista(s)"
+        str_total_artistas = "👨🏽‍🎤 {} artista(s)".format(locale.format_string("%d", total_artistas, grouping = True))
         st.markdown(str_total_artistas)
     with row2_4:
         total_albuns = len(np.unique(df_listagem_filtrada.Album_Single.dropna().astype(str)).tolist())
-        str_total_albuns = "💿 " + locale.format_string("%d", total_albuns, grouping = True) + " álbum(s)/single(s)"
+        str_total_albuns = "💿 {} álbum(s)/single(s)".format(locale.format_string("%d", total_albuns, grouping = True))
         st.markdown(str_total_albuns)
     with row2_5:
         total_paises = len(np.unique(df_listagem_filtrada.Pais.dropna()).tolist())
-        str_total_paises = "🌎 " + locale.format_string("%d", total_paises, grouping = True) + " países representados"
+        str_total_paises = "🌎 {} países representados".format(locale.format_string("%d", total_paises, grouping = True))
         st.markdown(str_total_paises)
     with row2_6:
         total_generos = len(np.unique(df_listagem_filtrada.Genero.dropna()).tolist())
-        str_total_generos = "🤘 " + locale.format_string("%d", total_generos, grouping = True) + " gêneros musicais"
+        str_total_generos = "🤘 {} gêneros musicais".format(locale.format_string("%d", total_generos, grouping = True))
         st.markdown(str_total_generos)
 
     st.divider()
@@ -717,14 +717,14 @@ with col2:
             st.subheader('Dados Gerais')
             info_edicao = InfoEdicao(df_listagem, list_edicoes[edicao_selecionada])
 
-            st.markdown('Neste ano a 1ª posição ficou com **' + info_edicao.get_musica_posicao(1) + '** e a posição de número 500 com **' + info_edicao.get_musica_posicao(500) + '**.')
+            st.markdown('Neste ano a 1ª posição ficou com **{}** e a posição de número 500 com **{}**.'.format(info_edicao.get_musica_posicao(1), info_edicao.get_musica_posicao(500)))
 
-            st.markdown('O Artista em que mais apareceu na listagem foi **' + info_edicao.get_top_artista() + '**.')
-            st.markdown('Já o Álbum/Single com mais músicas na lista foi **' + info_edicao.get_top_album() + '**.')
+            st.markdown('O Artista em que mais apareceu na listagem foi **{}**.'.format(info_edicao.get_top_artista()))
+            st.markdown('Já o Álbum/Single com mais músicas na lista foi **{}**.'.format(info_edicao.get_top_album()))
 
-            st.markdown('O Gênero Musical mais tocado foi **' + info_edicao.get_top_genero() + '**.')
+            st.markdown('O Gênero Musical mais tocado foi **{}**.'.format(info_edicao.get_top_genero()))
 
-            st.markdown('E tivemos música repetida? **' + info_edicao.get_repetidas() + '**!')
+            st.markdown('E tivemos música repetida? **{}**!'.format(info_edicao.get_repetidas()))
 
         with row5_2:
             st.subheader('Países dos Artistas na Edição')
