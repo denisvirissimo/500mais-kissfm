@@ -120,6 +120,18 @@ body {
   background: var(--grey-5);
 }
 
+.list__icon__red {
+  color:red !important;
+}
+
+.list__icon__green {
+  color:green !important;
+}
+
+.list__icon__grey {
+  color:grey !important;
+}
+
 @keyframes fade {
   from {
     opacity: 0;
