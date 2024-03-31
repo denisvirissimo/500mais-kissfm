@@ -3,4 +3,5 @@ numpy<=1.25.2
 plotly<=5.15.0
 ipython<=7.34.0
 streamlit
+streamlit-vis-timeline
 git+https://github.com/dexplo/bar_chart_race.git@master
