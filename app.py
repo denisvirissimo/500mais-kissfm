@@ -5,9 +5,11 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 import streamlit.components.v1 as components
-import io
+from streamlit_timeline import st_timeline
 import bar_chart_race as bcr
+import io
 import base64
+import json
 
 #Configuração
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
@@ -75,6 +77,20 @@ class InfoEdicao:
     def get_lista_generos(self):
         return self.df.groupby(['Edicao', 'Genero']).size().reset_index(name='Quantidade')
 
+    def get_lista_musicas(self):
+        df = self.df.loc[:, ['Id', 'Musica', 'Artista', 'Data_Lancamento_Album', 'Genero']]
+        #Workaround para tratar Timeline exibindo sem considerar UTC
+        df['Data_Lancamento_Album'] = df['Data_Lancamento_Album'] + pd.DateOffset(hours=3)
+        df['Musica'] = df['Artista'] + ' - ' + df['Musica']
+        df['Genero'] = 'Gênero: ' + df['Genero']
+
+        df = df.rename(columns={"Id": "id", "Musica": "content", "Data_Lancamento_Album": "start", "Genero": "title"})
+        return df.to_json(orient='records', date_format='iso')
+
+    def get_range_data_lancamento(self):
+        return [(self.df.Data_Lancamento_Album.min() + pd.DateOffset(years=-3)).strftime('%Y-%m-%dT%H:%M:%SZ'),
+                (self.df.Data_Lancamento_Album.max() + pd.DateOffset(years=3)).strftime('%Y-%m-%dT%H:%M:%SZ')]
+
 class InfoMusica:
 
     def __init__(self, df_data, id_musica):
@@ -99,37 +115,37 @@ class InfoMusica:
         return np.mean(self.df.Posicao).round(0).astype(int)
 
 class InfoCuriosidade:
-    
+
     def __init__(self, df_data):
         self.df = df_data
-        
+
     def __agrupar_dataframe(self, agregador):
         return self.df.groupby(agregador).size().reset_index(name = 'Count')
-    
+
     def get_primeiro_artista_br(self):
         df = self.df[self.df['Pais'] == 'Brasil'].sort_values(['Ano', 'Posicao'], ascending=False).tail(1)
         return [df.Artista.values[0], df.Ano.values[0], df.Posicao.values[0]]
-    
+
     def get_edicao_menos_artistas(self):
         df = self.__agrupar_dataframe(['Edicao', 'Artista']).groupby('Edicao')['Count'].count().reset_index().sort_values('Count')
         return [df.head(1).Edicao.values[0], df.head(1).Count.values[0]]
-    
+
     def get_edicao_mais_artistas(self):
         df = self.__agrupar_dataframe(['Edicao', 'Artista']).groupby('Edicao')['Count'].count().reset_index().sort_values('Count')
         return [df.tail(1).Edicao.values[0], df.tail(1).Count.values[0]]
-    
+
     def get_album_mais_musicas(self):
         df = self.__agrupar_dataframe(['Album_Single', 'Artista']).sort_values('Count').tail(1)
         return [df.Artista.values[0], df.Album_Single.values[0], df.Count.values[0], np.round(df.Count.values[0]/len(self.df)*100,2)]
-    
+
     def get_artista_mais_musicas_edicao(self):
         df = self.__agrupar_dataframe(['Edicao', 'Artista']).sort_values('Count').tail(1)
         return [df.Artista.values[0], df.Count.values[0], df.Edicao.values[0]]
-    
+
     def get_album_mais_musicas_edicao(self):
         df = self.__agrupar_dataframe(['Edicao', 'Album_Single']).sort_values('Count').sort_values('Count').tail(1)
         return [df.Album_Single.values[0], df.Count.values[0], df.Edicao.values[0]]
-    
+
     def get_artista_maior_percentual(self):
         df = self.__agrupar_dataframe(['Artista']).sort_values('Count').tail(1)
         return [df.Artista.values[0], df.Count.values[0], np.round(df.Count.values[0]/len(self.df)*100,2)]
@@ -516,6 +532,26 @@ def plotar_grafico_race(html_data):
     video = base64.b64decode(html_data[start:end])
     st.video(video)
 
+def plotar_timeline(edicao):
+  
+    items = json.loads(edicao.get_lista_musicas())
+    start = edicao.get_range_data_lancamento()[0]
+    end = edicao.get_range_data_lancamento()[1]
+
+    timeline = st_timeline(items,
+                          groups=[],
+                          options={"showTooltips": True,
+                                    "selectable": False,
+                                    "start": start,
+                                    "end": end,
+                                    "min": start,
+                                    "max": end,
+                                    "margin": {"item" : {"horizontal" : 0}},
+                                    "cluster": {"titleTemplate":"Cluster containing {count} events. Zoom in to see the individual events.","showStipes": "true"},
+                                    "zoomMin": 1000*60*60*144},
+                            height="500px")
+    st.write(timeline)
+
 def get_componente_top10(df_data):
     html = load_css()
     html+="""
@@ -725,6 +761,7 @@ with col2:
         row5_1, row5_2, row5_3 = st.columns((1.2, 2.6, 2.6), gap="large")
 
         with row5_1:
+
             st.subheader('Dados Gerais')
             info_edicao = InfoEdicao(df_listagem, list_edicoes[edicao_selecionada])
 
@@ -747,6 +784,11 @@ with col2:
 
         st.subheader('Mapa de Gêneros Músicais')
         plotar_treemap(info_edicao.get_lista_generos(), 'Genero', 'Quantidade', 'Gênero', 'Quantidade de Músicas')
+
+        st.divider()
+
+        st.subheader("Linha do tempo das músicas na edição")
+        plotar_timeline(info_edicao)
 
     with tab_analises:
         st.subheader('Análises por edição')
