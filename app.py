@@ -5,7 +5,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 import streamlit.components.v1 as components
-from streamlit_timeline import st_timeline
+from streamlit_timeline import timeline
 import bar_chart_race as bcr
 import io
 import base64
@@ -77,15 +77,19 @@ class InfoEdicao:
     def get_lista_generos(self):
         return self.df.groupby(['Edicao', 'Genero']).size().reset_index(name='Quantidade')
 
-    def get_lista_musicas(self):
-        df = self.df.loc[:, ['Id', 'Musica', 'Artista', 'Data_Lancamento_Album', 'Genero']]
-        #Workaround para tratar Timeline exibindo sem considerar UTC
-        df['Data_Lancamento_Album'] = df['Data_Lancamento_Album'] + pd.DateOffset(hours=3)
-        df['Musica'] = df['Artista'] + ' - ' + df['Musica']
-        df['Genero'] = 'Gênero: ' + df['Genero']
+    def get_musicas(self):
+        df = self.df.sort_values(by='Data_Lancamento_Album')
+        df = df.loc[:, ['Data_Lancamento_Album', 'Artista', 'Musica']].reset_index()
+        df = df.rename(columns={"index": "unique_id", "Artista": "text", "Musica": "headline"})
 
-        df = df.rename(columns={"Id": "id", "Musica": "content", "Data_Lancamento_Album": "start", "Genero": "title"})
-        return df.to_json(orient='records', date_format='iso')
+        df['year'] = df['Data_Lancamento_Album'].dt.year
+        df['month'] = df['Data_Lancamento_Album'].dt.month
+        df['day'] = df['Data_Lancamento_Album'].dt.day
+        df['start_date'] = df[['year', 'month', 'day']].to_dict(orient='records')
+        df['text'] = df[['headline', 'text']].to_dict(orient='records')
+        df = df.drop(['Data_Lancamento_Album','year', 'month', 'day', 'headline'], axis=1).to_dict(orient='records')
+
+        return json.dumps({'events': df})
 
     def get_range_data_lancamento(self):
         return [(self.df.Data_Lancamento_Album.min() + pd.DateOffset(years=-3)).strftime('%Y-%m-%dT%H:%M:%SZ'),
@@ -533,24 +537,18 @@ def plotar_grafico_race(html_data):
     st.video(video)
 
 def plotar_timeline(edicao):
-  
-    items = json.loads(edicao.get_lista_musicas())
-    start = edicao.get_range_data_lancamento()[0]
-    end = edicao.get_range_data_lancamento()[1]
+    items = json.loads(edicao.get_musicas())
 
-    timeline = st_timeline(items,
-                          groups=[],
-                          options={"showTooltips": True,
-                                    "selectable": False,
-                                    "start": start,
-                                    "end": end,
-                                    "min": start,
-                                    "max": end,
-                                    "margin": {"item" : {"horizontal" : 0}},
-                                    "cluster": {"titleTemplate":"Cluster containing {count} events. Zoom in to see the individual events.","showStipes": "true"},
-                                    "zoomMin": 1000*60*60*144},
-                            height="500px")
-    st.write(timeline)
+    options = {
+        "start_at_end": False,
+        "timenav_height": 50,
+        "is_embed": True,
+        "scale_factor": 11,
+        "duration": 300,
+        "language": "pt-br"
+    }
+
+    timeline(items, height=400, additional_options=options)
 
 def get_componente_top10(df_data):
     html = load_css()
@@ -756,14 +754,20 @@ with col2:
             list_edicoes = dict(zip(edicoes, anos))
             edicao_selecionada = st.selectbox ("Edição", list_edicoes.keys(), key = 'edicao_selecionada')
 
+        info_edicao = InfoEdicao(df_listagem, list_edicoes[edicao_selecionada])
         st.divider()
 
+        st.subheader("Linha do tempo das músicas na edição")
+        plotar_timeline(info_edicao)
+
+        st.caption('Use os as setas ao lado para avançar/retornar na linha do tempo. Clique e arraste na linha para avançar um período maior.')
+
+        st.divider()
         row5_1, row5_2, row5_3 = st.columns((1.2, 2.6, 2.6), gap="large")
 
         with row5_1:
-
             st.subheader('Dados Gerais')
-            info_edicao = InfoEdicao(df_listagem, list_edicoes[edicao_selecionada])
+
 
             st.markdown('Neste ano a 1ª posição ficou com **{}** e a posição de número 500 com **{}**.'.format(info_edicao.get_musica_posicao(1), info_edicao.get_musica_posicao(500)))
 
@@ -782,13 +786,10 @@ with col2:
             st.subheader('Gêneros Musicais na Edição')
             plotar_grafico_pizza(info_edicao.get_lista_generos(), 'Quantidade', 'Genero', 'Músicas', 'Gênero Musical')
 
-        st.subheader('Mapa de Gêneros Músicais')
-        plotar_treemap(info_edicao.get_lista_generos(), 'Genero', 'Quantidade', 'Gênero', 'Quantidade de Músicas')
-
         st.divider()
 
-        st.subheader("Linha do tempo das músicas na edição")
-        plotar_timeline(info_edicao)
+        st.subheader('Mapa de Gêneros Músicais')
+        plotar_treemap(info_edicao.get_lista_generos(), 'Genero', 'Quantidade', 'Gênero', 'Quantidade de Músicas')
 
     with tab_analises:
         st.subheader('Análises por edição')
