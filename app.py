@@ -389,9 +389,9 @@ def get_melhor_posicao_genero(df_data):
     indexes = df.groupby(['Genero'])['Posicao'].idxmin()
     return df.loc[indexes, ['Genero', 'Posicao', 'Edicao']]
 
-def get_analise_periodo(df_data, medida, agregador):
+def get_analise_periodo(df_data, medida, agregador, dimensao):
     df =  filtrar_inconsistencias(df_data)
-    df = df.groupby(agregador)['Musica'].count().reset_index(name='Contagem')
+    df = df.groupby(agregador)[dimensao].count().reset_index(name='Contagem')
     match medida:
         case 'Média':
             df = df.groupby('Edicao')['Contagem'].mean().reset_index(name=medida)
@@ -603,7 +603,8 @@ if 'opt_pink_floyd' not in st.session_state:
 
 df_listagem = load_data(dataset_file, st.session_state.opt_pink_floyd)
 
-list_aspectos = {"Músicas por Artista":['Artista', 'Edicao'], "Álbuns por Artista":['Album_Single', 'Edicao'], "Músicas por Gênero":['Genero', 'Edicao']}
+list_aspectos = {"Músicas por Artista":['Artista', 'Edicao'], "Álbuns por Artista":['Album_Single', 'Edicao'], "Músicas por Gênero":['Genero', 'Edicao'], "Gêneros por País":['Pais','Edicao']}
+list_dimensoes = {"Músicas por Artista":'Musica', "Álbuns por Artista":'Musica', "Músicas por Gênero":'Musica', "Gêneros por País":'Genero'}
 list_variaveis = {"Artista": 'Artista', "Música": 'Musica', "Álbum/Single": 'Album', "Gênero": 'Genero'}
 medidas = ["Média", "Mediana", "Máximo"]
 
@@ -799,7 +800,7 @@ with col2:
             aspecto_edicao_selecionado = st.selectbox ("Escolha o aspecto", list(list_aspectos.keys()), key = 'aspecto_edicao')
             medida_edicao_selecionada = st.selectbox ("Escolha a medida", medidas, key = 'medida_edicao')
         with row7_2:
-            plotar_grafico_barra(get_analise_periodo(df_listagem_filtrada, medida_edicao_selecionada, list_aspectos[aspecto_edicao_selecionado]),
+            plotar_grafico_barra(get_analise_periodo(df_listagem_filtrada, medida_edicao_selecionada, list_aspectos[aspecto_edicao_selecionado], list_dimensoes[aspecto_edicao_selecionado]),
                                 "Edicao",
                                 medida_edicao_selecionada,
                                 "Edições",
