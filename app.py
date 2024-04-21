@@ -8,6 +8,7 @@ import streamlit.components.v1 as components
 from streamlit_timeline import timeline
 import bar_chart_race as bcr
 import io
+import time
 import base64
 import json
 
@@ -162,9 +163,11 @@ def load_data(dataset, agregar_pinkfloyd):
     df_data['Edicao'] = df_data.Ano.astype(str).str[-2:] + "-" + (df_data.Ano +1).astype(str).str[-2:]
     df_data['Data_Lancamento_Album'] = pd.to_datetime(df_data['Data_Lancamento_Album'])
     df_data['Decada_Lancamento_Album'] = df_data['Data_Lancamento_Album'].dt.year.apply(get_decada)
-
+    df_data['Duracao'] = df_data.loc[:,'Duracao'].fillna(value=0)
+    df_data['Duracao_Formatada'] = df_data.apply(lambda row: time.strftime("%M:%S", time.gmtime(row['Duracao'])), axis=1)
     if (agregar_pinkfloyd):
         df_data.loc[df_data['Musica'].str.contains('Another Brick', na=False), 'Musica'] = 'Another Brick in the Wall'
+        df_data.loc[df_data['Musica'].str.contains('Another Brick', na=False), 'Duracao'] = 508
 
     return df_data
 
