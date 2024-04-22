@@ -14,7 +14,7 @@ import json
 
 #Configuração
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
-pd.set_option("styler.render.max_elements", 300000)
+pd.set_option("styler.render.max_elements", 325000)
 dataset_file = './data/500+.csv'
 css_file = './resources/style.css'
 logo_file = './resources/logo.png'
