@@ -29,6 +29,14 @@ class InfoEdicao:
         df_filtrado = self.df[self.df['Posicao'] == posicao]
         return df_filtrado.Artista.values[0] + ' - ' + df_filtrado.Musica.values[0]
 
+    def get_musica_menor_duracao(self):
+        df_filtrado = self.df.dropna(subset='Musica').sort_values(by='Duracao').head(1)
+        return df_filtrado.Artista.values[0] + ' - ' + df_filtrado.Musica.values[0] + ' (' + df_filtrado.Duracao_Formatada.values[0] + ')'
+
+    def get_musica_maior_duracao(self):
+        df_filtrado = self.df.dropna(subset='Musica').sort_values(by='Duracao').tail(1)
+        return df_filtrado.Artista.values[0] + ' - ' + df_filtrado.Musica.values[0] + ' (' + df_filtrado.Duracao_Formatada.values[0] + ')'
+
     def get_top_artista(self):
         top_artista = (self.df.groupby('Artista')
                        .size()
@@ -154,6 +162,10 @@ class InfoCuriosidade:
     def get_artista_maior_percentual(self):
         df = self.__agrupar_dataframe(['Artista']).sort_values('Count').tail(1)
         return [df.Artista.values[0], df.Count.values[0], np.round(df.Count.values[0]/len(self.df)*100,2)]
+
+    def get_duracao(self):
+        df_filtrado = self.df.dropna(subset='Musica').sort_values(by='Duracao')
+        return [df_filtrado.head(1).Duracao_Formatada.values[0], df_filtrado.tail(1).Duracao_Formatada.values[0]]
 
 #Inicialização
 @st.cache_data
@@ -392,18 +404,41 @@ def get_melhor_posicao_genero(df_data):
     indexes = df.groupby(['Genero'])['Posicao'].idxmin()
     return df.loc[indexes, ['Genero', 'Posicao', 'Edicao']]
 
-def get_analise_periodo(df_data, medida, agregador, dimensao):
+def get_analise_edicao(df_data, medida, analise):
+    agregadores = {"Musica_Artista":['Artista', 'Edicao'], 
+                      "Album_Artista":['Album_Single', 'Edicao'], 
+                      "Musica_Genero":['Genero', 'Edicao'], 
+                      "Genero_Pais":['Pais','Edicao'], 
+                      "Duracao":['Duracao','Edicao']}
+
+    dimensoes = {"Musica_Artista":'Musica', 
+                      "Album_Artista":'Musica', 
+                      "Musica_Genero":'Musica', 
+                      "Genero_Pais":'Genero', 
+                      "Duracao":'Duracao'}
+
+    agregador = agregadores[analise]
+    dimensao = dimensoes[analise]
+    index_name = 'Contagem'
+
     df =  filtrar_inconsistencias(df_data)
-    df = df.groupby(agregador)[dimensao].count().reset_index(name='Contagem')
+    if (dimensao != 'Duracao'):
+        df = df.groupby(agregador)[dimensao].count().reset_index(name=index_name)
+    else:
+        index_name = dimensao
+
     match medida:
         case 'Média':
-            df = df.groupby('Edicao')['Contagem'].mean().reset_index(name=medida)
+            df = df.groupby('Edicao')[index_name].mean().reset_index(name=medida)
         case 'Mediana':
-            df = df.groupby('Edicao')['Contagem'].median().reset_index(name=medida)
+            df = df.groupby('Edicao')[index_name].median().reset_index(name=medida)
         case 'Máximo':
-            df = df.groupby('Edicao')['Contagem'].max().reset_index(name=medida)
+            df = df.groupby('Edicao')[index_name].max().reset_index(name=medida)
         case default:
             df = df
+
+    if (dimensao == 'Duracao'):
+        df[medida] = pd.to_datetime(df[medida], unit='s')
 
     return np.around(df,2)
 
@@ -434,6 +469,8 @@ def plotar_grafico_barra(df_data, xdata, ydata, xlabel, ylabel, x_diagonal=False
     fig.update_traces(marker_color='#C50B11', hovertemplate=xlabel + ": %{x}<br>" + ylabel + ": %{y}", textangle=0)
     if x_diagonal:
         fig.update_xaxes(tickangle=-45)
+    if (df_data.select_dtypes(include=[np.datetime64]).columns.size > 0):
+        fig.update_layout(yaxis_tickformat="%M:%S")
     st.plotly_chart(fig, use_container_width=True)
 
 def plotar_grafico_barra_horizontal(df_data, xdata, ydata, xlabel, ylabel, x_diagonal=False):
@@ -606,9 +643,8 @@ if 'opt_pink_floyd' not in st.session_state:
 
 df_listagem = load_data(dataset_file, st.session_state.opt_pink_floyd)
 
-list_aspectos = {"Músicas por Artista":['Artista', 'Edicao'], "Álbuns por Artista":['Album_Single', 'Edicao'], "Músicas por Gênero":['Genero', 'Edicao'], "Gêneros por País":['Pais','Edicao']}
-list_dimensoes = {"Músicas por Artista":'Musica', "Álbuns por Artista":'Musica', "Músicas por Gênero":'Musica', "Gêneros por País":'Genero'}
-list_variaveis = {"Artista": 'Artista', "Música": 'Musica', "Álbum/Single": 'Album', "Gênero": 'Genero'}
+list_analises_edicao = {"Músicas por Artista":'Musica_Artista', "Álbuns por Artista":'Album_Artista', "Músicas por Gênero":'Musica_Genero', "Gêneros por País":'Genero_Pais', "Duração":'Duracao'}
+list_variaveis_topn = {"Artista": 'Artista', "Música": 'Musica', "Álbum/Single": 'Album', "Gênero": 'Genero'}
 medidas = ["Média", "Mediana", "Máximo"]
 
 
@@ -657,7 +693,7 @@ with col2:
     st.text('')
     st.subheader("Exibindo os seguintes dados a partir dos filtros:")
 
-    row2_1, row2_2, row2_3, row2_4, row2_5, row2_6 = st.columns((1.6, 1.6, 1.3, 1.6, 1.6, 1.6), gap="medium")
+    row2_1, row2_2, row2_3, row2_4, row2_5, row2_6, row2_7 = st.columns((1.6, 1.6, 1.0, 1.5, 1.6, 1.4, 1.1), gap="small")
     with row2_1:
         total_musicas = df_listagem_filtrada.Id.nunique()
         str_total_musicas = "🎶 {} músicas no total".format(locale.format_string("%d", total_musicas, grouping = True))
@@ -682,6 +718,10 @@ with col2:
         total_generos = len(np.unique(df_listagem_filtrada.Genero.dropna()).tolist())
         str_total_generos = "🤘 {} gêneros musicais".format(locale.format_string("%d", total_generos, grouping = True))
         st.markdown(str_total_generos)
+    with row2_7:
+        total_horas = np.sum(df_listagem_filtrada.Duracao.dropna()) / 3600
+        str_total_horas = "🕛 {}+ horas".format(locale.format_string("%d", total_horas, grouping = True))
+        st.markdown(str_total_horas)
 
     st.divider()
 
@@ -703,9 +743,9 @@ with col2:
         row3_1, row3_2 = st.columns((2, 5), gap="large")
         with row3_1:
             top_n = st.slider('Qual Top N você deseja visualizar?', 1, 50, 3)
-            variavel_topn_selecionada = st.selectbox ("Escolha a variável para visualizar no Top", list(list_variaveis.keys()), key = 'variavel_topn')
+            variavel_topn_selecionada = st.selectbox ("Escolha a variável para visualizar no Top", list(list_variaveis_topn.keys()), key = 'variavel_topn')
         with row3_2:
-            match list_variaveis[variavel_topn_selecionada]:
+            match list_variaveis_topn[variavel_topn_selecionada]:
                 case 'Artista':
                     st.dataframe(data=get_artistas_top_n(df_listagem_filtrada, top_n), hide_index=True, use_container_width=True, height=400, column_config={"Artista":"Artista", "Total_Aparicoes": "Número Total de Aparições"})
                 case 'Musica':
@@ -780,6 +820,8 @@ with col2:
 
             st.markdown('O Gênero Musical mais tocado foi **{}**.'.format(info_edicao.get_top_genero()))
 
+            st.markdown('A Música de menor duração foi **{}** e a música de maior duração foi **{}**'.format(info_edicao.get_musica_menor_duracao(), info_edicao.get_musica_maior_duracao()))
+
             st.markdown('E tivemos música repetida? **{}**!'.format(info_edicao.get_repetidas()))
 
         with row5_2:
@@ -800,14 +842,14 @@ with col2:
         st.markdown('A análise de alguns aspectos por edição pode mostrar a diversidade de músicas, álbuns e gêneros musicais a cada edição.')
         row7_1, row7_2 = st.columns((1.5, 6.2), gap="small")
         with row7_1:
-            aspecto_edicao_selecionado = st.selectbox ("Escolha o aspecto", list(list_aspectos.keys()), key = 'aspecto_edicao')
+            analise_edicao_selecionada = st.selectbox ("Escolha o aspecto", list(list_analises_edicao.keys()), key = 'analise_edicao')
             medida_edicao_selecionada = st.selectbox ("Escolha a medida", medidas, key = 'medida_edicao')
         with row7_2:
-            plotar_grafico_barra(get_analise_periodo(df_listagem_filtrada, medida_edicao_selecionada, list_aspectos[aspecto_edicao_selecionado], list_dimensoes[aspecto_edicao_selecionado]),
+            plotar_grafico_barra(get_analise_edicao(df_listagem_filtrada, medida_edicao_selecionada, list_analises_edicao[analise_edicao_selecionada]),
                                 "Edicao",
                                 medida_edicao_selecionada,
                                 "Edições",
-                                medida_edicao_selecionada + ' de ' + aspecto_edicao_selecionado)
+                                medida_edicao_selecionada + ' de ' + analise_edicao_selecionada)
 
         st.divider()
         st.subheader('Idade das músicas')
@@ -837,6 +879,9 @@ with col2:
 
         curiosidade = info_curiosidades.get_album_mais_musicas()
         st.markdown('* O álbum/single com mais músicas em todas as edições é {} de {}, com {} músicas. Isto representa {} % de todas as músicas.'.format(curiosidade[1], curiosidade[0], curiosidade[2], curiosidade[3]))
+
+        curiosidade = info_curiosidades.get_duracao()
+        st.markdown('* A música com menor duração teve {} e a música com maior duração {}.'.format(curiosidade[0], curiosidade[1]))
 
         curiosidade = info_curiosidades.get_artista_maior_percentual()
         st.markdown('* {} é o artista com maior número de músicas: {}, o que representa {} % do total de músicas.'.format(curiosidade[0], curiosidade[1], curiosidade[2]))
