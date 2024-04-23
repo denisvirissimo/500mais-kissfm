@@ -579,4 +579,13 @@ def gerar_grafico_race(df_data, atributo, titulo):
                   .reset_index())
     df_data = df_data.sort_values(by='Count', ascending=False).groupby('Ano').head(len(df_data))
     df_values, df_ranks = bcr.prepare_long_data(df_data, index='Ano', columns=atributo, values='Count', steps_per_period=1)
-    return bcr.bar_chart_race(df_values, n_bars=10, steps_per_period=15, period_length=1000, title = titulo, period_template='{x:.0f}', fixed_max=True, filter_column_colors=True).data
+    return bcr.bar_chart_race(df_values, 
+                            n_bars=10, 
+                            steps_per_period=15, 
+                            period_length=1000, 
+                            title = titulo, 
+                            period_template='{x:.0f}', 
+                            bar_texttemplate='{x:.0f}', 
+                            tick_template='{x:.0f}', 
+                            fixed_max=True, 
+                            filter_column_colors=True).data
