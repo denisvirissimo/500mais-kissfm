@@ -97,6 +97,14 @@ Com base nos gêneros listados para um determinado artista nestas fontes, tentou
 
 Após isso, os gêneros foram traduzidos para o português seguindo o que consta nas respectivas entradas na Wikipédia.
 
+### Duração
+
+A duração das músicas foi obtida a partir das músicas reconciliadas via OpenRefine e também por meio de web scrapping das respectivas páginas da Wikipédia (o notebook utilizado encontra-se no projeto).
+
+Para aquelas em que os dados não foram encontradas com os métodos acima, a duração foi localizada manualmente nas bibliotecas do Rate Your Music e Discogs.
+
+A duração indicada pode não ser precisa, uma vez que durante a programação das 500+ pode ser tido alguma variação de versão da música.
+
 
 ## Reconciliação (via Wikidata)
 

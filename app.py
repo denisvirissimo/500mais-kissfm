@@ -5,13 +5,16 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 import streamlit.components.v1 as components
-import io
+from streamlit_timeline import timeline
 import bar_chart_race as bcr
+import io
+import time
 import base64
+import json
 
 #Configuração
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
-pd.set_option("styler.render.max_elements", 300000)
+pd.set_option("styler.render.max_elements", 325000)
 dataset_file = './data/500+.csv'
 css_file = './resources/style.css'
 logo_file = './resources/logo.png'
@@ -25,6 +28,14 @@ class InfoEdicao:
     def get_musica_posicao(self, posicao):
         df_filtrado = self.df[self.df['Posicao'] == posicao]
         return df_filtrado.Artista.values[0] + ' - ' + df_filtrado.Musica.values[0]
+
+    def get_musica_menor_duracao(self):
+        df_filtrado = self.df.dropna(subset='Musica').sort_values(by='Duracao').head(1)
+        return df_filtrado.Artista.values[0] + ' - ' + df_filtrado.Musica.values[0] + ' (' + df_filtrado.Duracao_Formatada.values[0] + ')'
+
+    def get_musica_maior_duracao(self):
+        df_filtrado = self.df.dropna(subset='Musica').sort_values(by='Duracao').tail(1)
+        return df_filtrado.Artista.values[0] + ' - ' + df_filtrado.Musica.values[0] + ' (' + df_filtrado.Duracao_Formatada.values[0] + ')'
 
     def get_top_artista(self):
         top_artista = (self.df.groupby('Artista')
@@ -75,6 +86,24 @@ class InfoEdicao:
     def get_lista_generos(self):
         return self.df.groupby(['Edicao', 'Genero']).size().reset_index(name='Quantidade')
 
+    def get_musicas(self):
+        df = self.df.sort_values(by='Data_Lancamento_Album')
+        df = df.loc[:, ['Data_Lancamento_Album', 'Artista', 'Musica']].reset_index()
+        df = df.rename(columns={"index": "unique_id", "Artista": "text", "Musica": "headline"})
+
+        df['year'] = df['Data_Lancamento_Album'].dt.year
+        df['month'] = df['Data_Lancamento_Album'].dt.month
+        df['day'] = df['Data_Lancamento_Album'].dt.day
+        df['start_date'] = df[['year', 'month', 'day']].to_dict(orient='records')
+        df['text'] = df[['headline', 'text']].to_dict(orient='records')
+        df = df.drop(['Data_Lancamento_Album','year', 'month', 'day', 'headline'], axis=1).to_dict(orient='records')
+
+        return json.dumps({'events': df})
+
+    def get_range_data_lancamento(self):
+        return [(self.df.Data_Lancamento_Album.min() + pd.DateOffset(years=-3)).strftime('%Y-%m-%dT%H:%M:%SZ'),
+                (self.df.Data_Lancamento_Album.max() + pd.DateOffset(years=3)).strftime('%Y-%m-%dT%H:%M:%SZ')]
+
 class InfoMusica:
 
     def __init__(self, df_data, id_musica):
@@ -99,40 +128,44 @@ class InfoMusica:
         return np.mean(self.df.Posicao).round(0).astype(int)
 
 class InfoCuriosidade:
-    
+
     def __init__(self, df_data):
         self.df = df_data
-        
+
     def __agrupar_dataframe(self, agregador):
         return self.df.groupby(agregador).size().reset_index(name = 'Count')
-    
+
     def get_primeiro_artista_br(self):
         df = self.df[self.df['Pais'] == 'Brasil'].sort_values(['Ano', 'Posicao'], ascending=False).tail(1)
         return [df.Artista.values[0], df.Ano.values[0], df.Posicao.values[0]]
-    
+
     def get_edicao_menos_artistas(self):
         df = self.__agrupar_dataframe(['Edicao', 'Artista']).groupby('Edicao')['Count'].count().reset_index().sort_values('Count')
         return [df.head(1).Edicao.values[0], df.head(1).Count.values[0]]
-    
+
     def get_edicao_mais_artistas(self):
         df = self.__agrupar_dataframe(['Edicao', 'Artista']).groupby('Edicao')['Count'].count().reset_index().sort_values('Count')
         return [df.tail(1).Edicao.values[0], df.tail(1).Count.values[0]]
-    
+
     def get_album_mais_musicas(self):
         df = self.__agrupar_dataframe(['Album_Single', 'Artista']).sort_values('Count').tail(1)
         return [df.Artista.values[0], df.Album_Single.values[0], df.Count.values[0], np.round(df.Count.values[0]/len(self.df)*100,2)]
-    
+
     def get_artista_mais_musicas_edicao(self):
         df = self.__agrupar_dataframe(['Edicao', 'Artista']).sort_values('Count').tail(1)
         return [df.Artista.values[0], df.Count.values[0], df.Edicao.values[0]]
-    
+
     def get_album_mais_musicas_edicao(self):
         df = self.__agrupar_dataframe(['Edicao', 'Album_Single']).sort_values('Count').sort_values('Count').tail(1)
         return [df.Album_Single.values[0], df.Count.values[0], df.Edicao.values[0]]
-    
+
     def get_artista_maior_percentual(self):
         df = self.__agrupar_dataframe(['Artista']).sort_values('Count').tail(1)
         return [df.Artista.values[0], df.Count.values[0], np.round(df.Count.values[0]/len(self.df)*100,2)]
+
+    def get_duracao(self):
+        df_filtrado = self.df.dropna(subset='Musica').sort_values(by='Duracao')
+        return [df_filtrado.head(1).Duracao_Formatada.values[0], df_filtrado.tail(1).Duracao_Formatada.values[0]]
 
 #Inicialização
 @st.cache_data
@@ -142,9 +175,11 @@ def load_data(dataset, agregar_pinkfloyd):
     df_data['Edicao'] = df_data.Ano.astype(str).str[-2:] + "-" + (df_data.Ano +1).astype(str).str[-2:]
     df_data['Data_Lancamento_Album'] = pd.to_datetime(df_data['Data_Lancamento_Album'])
     df_data['Decada_Lancamento_Album'] = df_data['Data_Lancamento_Album'].dt.year.apply(get_decada)
-
+    df_data['Duracao'] = df_data.loc[:,'Duracao'].fillna(value=0)
+    df_data['Duracao_Formatada'] = df_data.apply(lambda row: time.strftime("%M:%S", time.gmtime(row['Duracao'])), axis=1)
     if (agregar_pinkfloyd):
         df_data.loc[df_data['Musica'].str.contains('Another Brick', na=False), 'Musica'] = 'Another Brick in the Wall'
+        df_data.loc[df_data['Musica'].str.contains('Another Brick', na=False), 'Duracao'] = 508
 
     return df_data
 
@@ -369,18 +404,41 @@ def get_melhor_posicao_genero(df_data):
     indexes = df.groupby(['Genero'])['Posicao'].idxmin()
     return df.loc[indexes, ['Genero', 'Posicao', 'Edicao']]
 
-def get_analise_periodo(df_data, medida, agregador):
+def get_analise_edicao(df_data, medida, analise):
+    agregadores = {"Musica_Artista":['Artista', 'Edicao'], 
+                      "Album_Artista":['Album_Single', 'Edicao'], 
+                      "Musica_Genero":['Genero', 'Edicao'], 
+                      "Genero_Pais":['Pais','Edicao'], 
+                      "Duracao":['Duracao','Edicao']}
+
+    dimensoes = {"Musica_Artista":'Musica', 
+                      "Album_Artista":'Musica', 
+                      "Musica_Genero":'Musica', 
+                      "Genero_Pais":'Genero', 
+                      "Duracao":'Duracao'}
+
+    agregador = agregadores[analise]
+    dimensao = dimensoes[analise]
+    index_name = 'Contagem'
+
     df =  filtrar_inconsistencias(df_data)
-    df = df.groupby(agregador)['Musica'].count().reset_index(name='Contagem')
+    if (dimensao != 'Duracao'):
+        df = df.groupby(agregador)[dimensao].count().reset_index(name=index_name)
+    else:
+        index_name = dimensao
+
     match medida:
         case 'Média':
-            df = df.groupby('Edicao')['Contagem'].mean().reset_index(name=medida)
+            df = df.groupby('Edicao')[index_name].mean().reset_index(name=medida)
         case 'Mediana':
-            df = df.groupby('Edicao')['Contagem'].median().reset_index(name=medida)
+            df = df.groupby('Edicao')[index_name].median().reset_index(name=medida)
         case 'Máximo':
-            df = df.groupby('Edicao')['Contagem'].max().reset_index(name=medida)
+            df = df.groupby('Edicao')[index_name].max().reset_index(name=medida)
         case default:
             df = df
+
+    if (dimensao == 'Duracao'):
+        df[medida] = pd.to_datetime(df[medida], unit='s')
 
     return np.around(df,2)
 
@@ -411,6 +469,8 @@ def plotar_grafico_barra(df_data, xdata, ydata, xlabel, ylabel, x_diagonal=False
     fig.update_traces(marker_color='#C50B11', hovertemplate=xlabel + ": %{x}<br>" + ylabel + ": %{y}", textangle=0)
     if x_diagonal:
         fig.update_xaxes(tickangle=-45)
+    if (df_data.select_dtypes(include=[np.datetime64]).columns.size > 0):
+        fig.update_layout(yaxis_tickformat="%M:%S")
     st.plotly_chart(fig, use_container_width=True)
 
 def plotar_grafico_barra_horizontal(df_data, xdata, ydata, xlabel, ylabel, x_diagonal=False):
@@ -516,6 +576,20 @@ def plotar_grafico_race(html_data):
     video = base64.b64decode(html_data[start:end])
     st.video(video)
 
+def plotar_timeline(edicao):
+    items = json.loads(edicao.get_musicas())
+
+    options = {
+        "start_at_end": False,
+        "timenav_height": 50,
+        "is_embed": True,
+        "scale_factor": 11,
+        "duration": 300,
+        "language": "pt-br"
+    }
+
+    timeline(items, height=400, additional_options=options)
+
 def get_componente_top10(df_data):
     html = load_css()
     html+="""
@@ -569,8 +643,8 @@ if 'opt_pink_floyd' not in st.session_state:
 
 df_listagem = load_data(dataset_file, st.session_state.opt_pink_floyd)
 
-list_aspectos = {"Músicas por Artista":['Artista', 'Edicao'], "Álbuns por Artista":['Album_Single', 'Edicao'], "Músicas por Gênero":['Genero', 'Edicao']}
-list_variaveis = {"Artista": 'Artista', "Música": 'Musica', "Álbum/Single": 'Album', "Gênero": 'Genero'}
+list_analises_edicao = {"Músicas por Artista":'Musica_Artista', "Álbuns por Artista":'Album_Artista', "Músicas por Gênero":'Musica_Genero', "Gêneros por País":'Genero_Pais', "Duração":'Duracao'}
+list_variaveis_topn = {"Artista": 'Artista', "Música": 'Musica', "Álbum/Single": 'Album', "Gênero": 'Genero'}
 medidas = ["Média", "Mediana", "Máximo"]
 
 
@@ -619,7 +693,7 @@ with col2:
     st.text('')
     st.subheader("Exibindo os seguintes dados a partir dos filtros:")
 
-    row2_1, row2_2, row2_3, row2_4, row2_5, row2_6 = st.columns((1.6, 1.6, 1.3, 1.6, 1.6, 1.6), gap="medium")
+    row2_1, row2_2, row2_3, row2_4, row2_5, row2_6, row2_7 = st.columns((1.6, 1.6, 1.0, 1.5, 1.6, 1.4, 1.1), gap="small")
     with row2_1:
         total_musicas = df_listagem_filtrada.Id.nunique()
         str_total_musicas = "🎶 {} músicas no total".format(locale.format_string("%d", total_musicas, grouping = True))
@@ -644,6 +718,10 @@ with col2:
         total_generos = len(np.unique(df_listagem_filtrada.Genero.dropna()).tolist())
         str_total_generos = "🤘 {} gêneros musicais".format(locale.format_string("%d", total_generos, grouping = True))
         st.markdown(str_total_generos)
+    with row2_7:
+        total_horas = np.sum(df_listagem_filtrada.Duracao.dropna()) / 3600
+        str_total_horas = "🕛 {}+ horas".format(locale.format_string("%d", total_horas, grouping = True))
+        st.markdown(str_total_horas)
 
     st.divider()
 
@@ -665,9 +743,9 @@ with col2:
         row3_1, row3_2 = st.columns((2, 5), gap="large")
         with row3_1:
             top_n = st.slider('Qual Top N você deseja visualizar?', 1, 50, 3)
-            variavel_topn_selecionada = st.selectbox ("Escolha a variável para visualizar no Top", list(list_variaveis.keys()), key = 'variavel_topn')
+            variavel_topn_selecionada = st.selectbox ("Escolha a variável para visualizar no Top", list(list_variaveis_topn.keys()), key = 'variavel_topn')
         with row3_2:
-            match list_variaveis[variavel_topn_selecionada]:
+            match list_variaveis_topn[variavel_topn_selecionada]:
                 case 'Artista':
                     st.dataframe(data=get_artistas_top_n(df_listagem_filtrada, top_n), hide_index=True, use_container_width=True, height=400, column_config={"Artista":"Artista", "Total_Aparicoes": "Número Total de Aparições"})
                 case 'Musica':
@@ -720,13 +798,20 @@ with col2:
             list_edicoes = dict(zip(edicoes, anos))
             edicao_selecionada = st.selectbox ("Edição", list_edicoes.keys(), key = 'edicao_selecionada')
 
+        info_edicao = InfoEdicao(df_listagem, list_edicoes[edicao_selecionada])
         st.divider()
 
+        st.subheader("Linha do tempo das músicas na edição")
+        plotar_timeline(info_edicao)
+
+        st.caption('Use os as setas ao lado para avançar/retornar na linha do tempo. Clique e arraste na linha para avançar um período maior.')
+
+        st.divider()
         row5_1, row5_2, row5_3 = st.columns((1.2, 2.6, 2.6), gap="large")
 
         with row5_1:
             st.subheader('Dados Gerais')
-            info_edicao = InfoEdicao(df_listagem, list_edicoes[edicao_selecionada])
+
 
             st.markdown('Neste ano a 1ª posição ficou com **{}** e a posição de número 500 com **{}**.'.format(info_edicao.get_musica_posicao(1), info_edicao.get_musica_posicao(500)))
 
@@ -734,6 +819,8 @@ with col2:
             st.markdown('Já o Álbum/Single com mais músicas na lista foi **{}**.'.format(info_edicao.get_top_album()))
 
             st.markdown('O Gênero Musical mais tocado foi **{}**.'.format(info_edicao.get_top_genero()))
+
+            st.markdown('A Música de menor duração foi **{}** e a música de maior duração foi **{}**'.format(info_edicao.get_musica_menor_duracao(), info_edicao.get_musica_maior_duracao()))
 
             st.markdown('E tivemos música repetida? **{}**!'.format(info_edicao.get_repetidas()))
 
@@ -745,6 +832,8 @@ with col2:
             st.subheader('Gêneros Musicais na Edição')
             plotar_grafico_pizza(info_edicao.get_lista_generos(), 'Quantidade', 'Genero', 'Músicas', 'Gênero Musical')
 
+        st.divider()
+
         st.subheader('Mapa de Gêneros Músicais')
         plotar_treemap(info_edicao.get_lista_generos(), 'Genero', 'Quantidade', 'Gênero', 'Quantidade de Músicas')
 
@@ -753,14 +842,14 @@ with col2:
         st.markdown('A análise de alguns aspectos por edição pode mostrar a diversidade de músicas, álbuns e gêneros musicais a cada edição.')
         row7_1, row7_2 = st.columns((1.5, 6.2), gap="small")
         with row7_1:
-            aspecto_edicao_selecionado = st.selectbox ("Escolha o aspecto", list(list_aspectos.keys()), key = 'aspecto_edicao')
+            analise_edicao_selecionada = st.selectbox ("Escolha o aspecto", list(list_analises_edicao.keys()), key = 'analise_edicao')
             medida_edicao_selecionada = st.selectbox ("Escolha a medida", medidas, key = 'medida_edicao')
         with row7_2:
-            plotar_grafico_barra(get_analise_periodo(df_listagem_filtrada, medida_edicao_selecionada, list_aspectos[aspecto_edicao_selecionado]),
+            plotar_grafico_barra(get_analise_edicao(df_listagem_filtrada, medida_edicao_selecionada, list_analises_edicao[analise_edicao_selecionada]),
                                 "Edicao",
                                 medida_edicao_selecionada,
                                 "Edições",
-                                medida_edicao_selecionada + ' de ' + aspecto_edicao_selecionado)
+                                medida_edicao_selecionada + ' de ' + analise_edicao_selecionada)
 
         st.divider()
         st.subheader('Idade das músicas')
@@ -790,6 +879,9 @@ with col2:
 
         curiosidade = info_curiosidades.get_album_mais_musicas()
         st.markdown('* O álbum/single com mais músicas em todas as edições é {} de {}, com {} músicas. Isto representa {} % de todas as músicas.'.format(curiosidade[1], curiosidade[0], curiosidade[2], curiosidade[3]))
+
+        curiosidade = info_curiosidades.get_duracao()
+        st.markdown('* A música com menor duração teve {} e a música com maior duração {}.'.format(curiosidade[0], curiosidade[1]))
 
         curiosidade = info_curiosidades.get_artista_maior_percentual()
         st.markdown('* {} é o artista com maior número de músicas: {}, o que representa {} % do total de músicas.'.format(curiosidade[0], curiosidade[1], curiosidade[2]))
