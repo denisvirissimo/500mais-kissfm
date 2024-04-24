@@ -1,6 +1,7 @@
 import json
 import base64
 import core_functions as core
+import charts as ch
 import locale
 import streamlit as st
 import streamlit.components.v1 as components
@@ -65,16 +66,15 @@ def plotar_timeline(edicao):
 
     timeline(items, height=400, additional_options=options)
 
-def plotar_grafico_race(html_data):
+@st.cache_resource(show_spinner='Gerando gráfico de corrida...')
+def plotar_grafico_race(df_data, atributo, titulo):
+    html_data = ch.gerar_grafico_race(df_data, atributo, titulo)
+
     start = html_data.find('base64,') + len('base64,')
     end = html_data.find('">')
 
     video = base64.b64decode(html_data[start:end])
     st.video(video)
-
-@st.cache_resource(show_spinner='Gerando gráfico de corrida...')
-def gerar_grafico_race(df_data, atributo, titulo):
-    return core.gerar_grafico_race(df_data, atributo, titulo)
 
 @st.cache_data
 def load_data(agregar_pinkfloyd):
@@ -194,12 +194,12 @@ with col2:
 
     with tab_geral:
         st.subheader('Evolução de músicas distintas ao longo dos anos')
-        plotar_grafico(core.get_grafico_barra(core.get_acumulado_musicas_distintas(df_listagem_filtrada), "Anos", "Acumulado", "Edições", "Acumulado de Músicas distintas"))
+        plotar_grafico(ch.get_grafico_barra(core.get_acumulado_musicas_distintas(df_listagem_filtrada), "Anos", "Acumulado", "Edições", "Acumulado de Músicas distintas"))
 
         st.divider()
 
         st.subheader('Evolução de gêneros musicais distintos ao longo dos anos')
-        plotar_grafico(core.get_grafico_barra(core.get_acumulado_generos_distintos(df_listagem_filtrada), "Anos", "Acumulado", "Edições", "Acumulado de Gêneros Musicais distintos"))
+        plotar_grafico(ch.get_grafico_barra(core.get_acumulado_generos_distintos(df_listagem_filtrada), "Anos", "Acumulado", "Edições", "Acumulado de Gêneros Musicais distintos"))
 
         st.divider()
 
@@ -225,22 +225,22 @@ with col2:
         st.divider()
 
         st.subheader('Músicas distintas por Ano de Lançamento')
-        plotar_grafico(core.get_grafico_barra(core.get_musicas_ano_lancamento(df_listagem_filtrada), "Data_Lancamento_Album", "Total_Musicas", "Anos", "Quantidade de Músicas distintas", True))
+        plotar_grafico(ch.get_grafico_barra(core.get_musicas_ano_lancamento(df_listagem_filtrada), "Data_Lancamento_Album", "Total_Musicas", "Anos", "Quantidade de Músicas distintas", True))
 
         st.divider()
 
         st.subheader('Músicas distintas por Década de Lançamento')
-        plotar_grafico(core.get_grafico_barra(core.get_musicas_decada_lancamento(df_listagem_filtrada), "Decada_Lancamento_Album", "Total_Musicas", "Décadas", "Quantidade de Músicas distintas"))
+        plotar_grafico(ch.get_grafico_barra(core.get_musicas_decada_lancamento(df_listagem_filtrada), "Decada_Lancamento_Album", "Total_Musicas", "Décadas", "Quantidade de Músicas distintas"))
 
         st.divider()
 
         st.subheader('Músicas distintas por País do Artista')
-        plotar_grafico(core.get_grafico_barra_stacked(core.get_musicas_por_pais(df_listagem_filtrada), "Edicao", "Total_Musicas", "Pais", "Edições", "Músicas por País", "Países"))
+        plotar_grafico(ch.get_grafico_barra_stacked(core.get_musicas_por_pais(df_listagem_filtrada), "Edicao", "Total_Musicas", "Pais", "Edições", "Músicas por País", "Países"))
 
         st.divider()
 
         st.subheader('Músicas distintas por Gênero Musical do Artista')
-        plotar_grafico(core.get_grafico_barra_stacked(core.get_musicas_por_genero(df_listagem_filtrada), "Edicao", "Total_Musicas", "Genero", "Edições", "Músicas por Gênero Musical", "Gêneros Musicais"))
+        plotar_grafico(ch.get_grafico_barra_stacked(core.get_musicas_por_genero(df_listagem_filtrada), "Edicao", "Total_Musicas", "Genero", "Edições", "Músicas por Gênero Musical", "Gêneros Musicais"))
 
         st.divider()
 
@@ -251,7 +251,7 @@ with col2:
 
         with row3_4:
             st.subheader('Mapa de Países')
-            plotar_grafico(core.get_mapa(core.get_musicas_por_pais(df_listagem_filtrada, True)))
+            plotar_grafico(ch.get_mapa(core.get_musicas_por_pais(df_listagem_filtrada, True)))
 
     with tab_edicao:
 
@@ -291,16 +291,16 @@ with col2:
 
         with row5_2:
             st.subheader('Países dos Artistas na Edição')
-            plotar_grafico(core.get_grafico_pizza(info_edicao.get_lista_paises(), 'Quantidade', 'Pais', 'Músicas', 'País'))
+            plotar_grafico(ch.get_grafico_pizza(info_edicao.get_lista_paises(), 'Quantidade', 'Pais', 'Músicas', 'País'))
 
         with row5_3:
             st.subheader('Gêneros Musicais na Edição')
-            plotar_grafico(core.get_grafico_pizza(info_edicao.get_lista_generos(), 'Quantidade', 'Genero', 'Músicas', 'Gênero Musical'))
+            plotar_grafico(ch.get_grafico_pizza(info_edicao.get_lista_generos(), 'Quantidade', 'Genero', 'Músicas', 'Gênero Musical'))
 
         st.divider()
 
         st.subheader('Mapa de Gêneros Músicais')
-        plotar_grafico(core.get_analise_edicao_treemap(info_edicao.get_lista_generos(), 'Genero', 'Quantidade', 'Gênero', 'Quantidade de Músicas'))
+        plotar_grafico(ch.get_analise_edicao_treemap(info_edicao.get_lista_generos(), 'Genero', 'Quantidade', 'Gênero', 'Quantidade de Músicas'))
 
     with tab_analises:
         st.subheader('Análises por edição')
@@ -310,7 +310,7 @@ with col2:
             analise_edicao_selecionada = st.selectbox ("Escolha o aspecto", list(list_analises_edicao.keys()), key = 'analise_edicao')
             medida_edicao_selecionada = st.selectbox ("Escolha a medida", medidas, key = 'medida_edicao')
         with row7_2:
-            plotar_grafico(core.get_grafico_barra(core.get_analise_edicao(df_listagem_filtrada, medida_edicao_selecionada, list_analises_edicao[analise_edicao_selecionada]),
+            plotar_grafico(ch.get_grafico_barra(core.get_analise_edicao(df_listagem_filtrada, medida_edicao_selecionada, list_analises_edicao[analise_edicao_selecionada]),
                                 "Edicao",
                                 medida_edicao_selecionada,
                                 "Edições",
@@ -321,7 +321,7 @@ with col2:
         st.markdown('A análise de idade das músicas demonstra se há uma tradição de votação em músicas mais antigas (especialmente da década de 70) ou se têm sido incorporadas músicas mais recentes na listagem.')
         st.markdown('A idade é recalculada a cada edição.')
 
-        plotar_grafico(core.get_grafico_linha(core.get_idade_por_edicao(df_listagem_filtrada), 'Edicao', 'Media_Idade_Lancamento', 'Edições', 'Média de Idade', 'Mediana_Idade_Lancamento', 'Mediana de Idade'))
+        plotar_grafico(ch.get_grafico_linha(core.get_idade_por_edicao(df_listagem_filtrada), 'Edicao', 'Media_Idade_Lancamento', 'Edições', 'Média de Idade', 'Mediana_Idade_Lancamento', 'Mediana de Idade'))
 
     with tab_curiosidades:
 
@@ -362,7 +362,7 @@ with col2:
       st.divider()
 
       st.subheader('Mapa de calor de músicas presentes em todas as edições')
-      plotar_mapa_calor(core.get_mapa_calor(core.get_musicas_todos_anos(df_listagem)))
+      plotar_mapa_calor(ch.get_mapa_calor(core.get_musicas_todos_anos(df_listagem)))
 
       st.divider()
 
@@ -393,12 +393,10 @@ with col2:
       with row6_2:
 
           st.subheader('')
-          plotar_grafico_race(gerar_grafico_race(
-                             load_data(False),
+          plotar_grafico_race(core.get_dados_cumulativos(load_data(False), 'Artista'),
                               'Artista',
-                              'Top 10 Artistas com mais músicas nas edições'))
+                              'Top 10 Artistas com mais músicas nas edições')
 
-          plotar_grafico_race(gerar_grafico_race(
-                              load_data(False),
+          plotar_grafico_race(core. get_dados_cumulativos(load_data(False), 'Genero'),
                               'Genero',
-                              'Top 10 Gêneros Musicais com mais músicas nas edições'))
+                              'Top 10 Gêneros Musicais com mais músicas nas edições')
