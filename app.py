@@ -2,6 +2,7 @@ import json
 import base64
 import core_functions as core
 import charts as ch
+from info import InfoEdicao, InfoMusica, InfoCuriosidade
 import locale
 import streamlit as st
 import streamlit.components.v1 as components
@@ -263,7 +264,7 @@ with col2:
             list_edicoes = dict(zip(edicoes, anos))
             edicao_selecionada = st.selectbox ("Edição", list_edicoes.keys(), key = 'edicao_selecionada')
 
-        info_edicao = core.InfoEdicao(df_listagem, list_edicoes[edicao_selecionada])
+        info_edicao = InfoEdicao(df_listagem, list_edicoes[edicao_selecionada])
         st.divider()
 
         st.subheader("Linha do tempo das músicas na edição")
@@ -325,7 +326,7 @@ with col2:
 
     with tab_curiosidades:
 
-        info_curiosidades = core.InfoCuriosidade(core.filtrar_inconsistencias(df_listagem))
+        info_curiosidades = InfoCuriosidade(core.filtrar_inconsistencias(df_listagem))
 
         curiosidade = info_curiosidades.get_primeiro_artista_br()
         st.markdown('* A primeira aparição de um artista brasileiro foi em {} com {}, ficando na {}ª posição.'.format(curiosidade[1], curiosidade[0], curiosidade[2]))
@@ -383,7 +384,7 @@ with col2:
 
       if (musica_selecionada != None):
           row8_1, row8_2, row8_3, row8_4, row8_5 = st.columns(5)
-          info_musica = core.InfoMusica(core.filtrar_inconsistencias(df_listagem), musica_selecionada)
+          info_musica = InfoMusica(core.filtrar_inconsistencias(df_listagem), musica_selecionada)
           row8_1.metric(label="Melhor Posição", value=info_musica.get_melhor_posicao())
           row8_2.metric(label="Pior Posição", value=info_musica.get_pior_posicao())
           row8_3.metric(label="Posição Média", value=info_musica.get_posicao_media())
