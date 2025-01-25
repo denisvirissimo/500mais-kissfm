@@ -134,7 +134,7 @@ def get_musicas_todos_anos(df_data):
     df = filtrar_inconsistencias(df_data).copy()
     df['Count'] = df.groupby(['Artista', 'Musica', 'Observacao'], dropna=False)['Musica'].transform('count')
     df['Musica'] = df.apply(lambda row: row['Artista'] + ' - ' + row['Musica'], axis=1)
-    df = df.loc[df['Count'] == 24].sort_values(['Ano','Posicao'])
+    df = df.loc[df['Count'] == df['Ano'].nunique()].sort_values(['Ano','Posicao'])
 
     return pd.pivot(data=df, index='Musica', columns='Edicao', values='Posicao')
 
