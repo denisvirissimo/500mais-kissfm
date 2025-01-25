@@ -217,7 +217,7 @@ with col2:
 
         with row3_4:
             st.subheader('Mapa de Países')
-            plotar_grafico(ch.get_mapa(core.get_musicas_por_pais(df_listagem_filtrada, True)))
+            plotar_grafico(ch.get_mapa(core.get_musicas_por_pais(df_listagem_filtrada, True), "Country", "Total_Musicas", "Pais", "Quantidade de Músicas"))
 
     with tab_edicao:
 
@@ -328,7 +328,7 @@ with col2:
       st.divider()
 
       st.subheader('Mapa de calor de músicas presentes em todas as edições')
-      plotar_mapa_calor(ch.get_mapa_calor(core.get_musicas_todos_anos(df_listagem)))
+      plotar_mapa_calor(ch.get_mapa_calor(core.get_musicas_todos_anos(df_listagem), "Edição", "Música", "Posição", "Edições", "Músicas"))
 
       st.divider()
 
