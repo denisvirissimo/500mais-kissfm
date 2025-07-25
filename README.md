@@ -140,6 +140,12 @@ Caso você consiga essa informação, por favor abra uma issue para que o arquiv
 
 Em um projeto complementar tentarei estimar quais eram as possíveis músicas, com base na análise dos dados das músicas votadas em outros anos.
 
+
+**EDIT**: Graças à uma planilha cedida pelo [@humbertobiasin](https://x.com/humbertobiasin) pude preencher a lista dessas músicas não identificadas. Foram elas:
+
+* 2006: #471 - No Excuses (Alice in Chains)
+* 2007: #49 - Somebody to Love (Queen); #54 - We Are the Champions (Queen); #97 - Boys Don't Cry (The Cure); # 262 - Sister (The Nixons); #265 - Red Sector A (Rush); #266 - Runnin' With the Devil (Van Halen); #267 - The Long and Winding Road (The Beatles); 269 - Breakfast at Tiffany's (Deep Blue Something); #304 Only Time Will Tell (Asia) (A não identificada do Bad Company era Can't Get Enough e ficou na posição #303)
+* 2013: #311 - Sad but True (Metallica)
 ---
 
 # Análise dos dados
@@ -224,6 +230,7 @@ Em função de ter ficado em 27ª em 23/24, "Stairway to Heaven" acaba ficando e
 ## Fontes
 
 1. Planilha compilada pelo [@fabriciorby](https://x.com/fabriciorby) - https://docs.google.com/spreadsheets/d/1OHdR-RKBsELOR5nZ-L5pa8OohbvdNT29z7T-6SfWD70/
-2. Blog "LISTA das 500 MAIS da KISS FM de 2000 a 2023" - https://leitespc.blogspot.com/
-3. Blog "Álbuns de Cabeceira" - https://albunsdecabeceira.blogspot.com/
-4. Site Whiplash - https://whiplash.net/materias/melhores/195761.html, https://whiplash.net/materias/melhores/170703.html
+2. Planilha compilada gentilmente cedida pelo [@humbertobiasin](https://x.com/humbertobiasin)
+3. Blog "LISTA das 500 MAIS da KISS FM de 2000 a 2023" - https://leitespc.blogspot.com/
+4. Blog "Álbuns de Cabeceira" - https://albunsdecabeceira.blogspot.com/
+5. Site Whiplash - https://whiplash.net/materias/melhores/195761.html, https://whiplash.net/materias/melhores/170703.html

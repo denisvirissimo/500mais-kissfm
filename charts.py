@@ -65,19 +65,19 @@ def get_grafico_pizza(df_data, valor, nomes, label_valor, label_nomes):
 
     return fig
 
-def get_mapa(df_data):
+def get_mapa(df_data, locations, color, hover_name, title):
     fig = px.choropleth(df_data,
                         locationmode="country names",
-                        locations="Country",
-                        color='Total_Musicas',
-                        hover_name="Pais",
+                        locations=locations,
+                        color=color,
+                        hover_name=hover_name,
                         color_continuous_scale = px.colors.sequential.YlOrRd, projection='natural earth')
 
-    fig.update_layout(coloraxis_colorbar=dict(title="Quantidade de Músicas"))
+    fig.update_layout(coloraxis_colorbar=dict(title=title))
 
     return fig
 
-def get_mapa_calor(df_data):
+def get_mapa_calor(df_data, xhover, yhover, zhover, xlabel, ylabel):
     fig = go.Figure(data=go.Heatmap(
                         z=df_data,
                         x=df_data.columns,
@@ -86,12 +86,12 @@ def get_mapa_calor(df_data):
                         colorscale='viridis',
                         reversescale=True,
                         name="",
-                        hovertemplate='Edição: %{x}<br>Música: %{y}<br>Posição: %{z}',
+                        hovertemplate= xhover + ': %{x}<br>' + yhover + ': %{y}<br>' + zhover + ': %{z}',
                         texttemplate="%{text}"))
 
     fig.update_layout(xaxis_type='category',
-                  xaxis_title = "Edições",
-                  yaxis_title="Músicas",
+                  xaxis_title = xlabel,
+                  yaxis_title = ylabel,
                   height=55*len(df_data.index),
                   dragmode=False,
                   clickmode='none',
