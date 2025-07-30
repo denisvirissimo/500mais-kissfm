@@ -94,6 +94,14 @@ class InfoMusica:
 
         self.df = df_data.loc[(df_data['Artista'] == artista.values[0]) & (df_data['Musica'] == musica.values[0])]
 
+    def __listar_podios(self, df):
+        return df[df['Posicao'].isin({1,2,3})]
+    
+    def __contar_consecutivos(self, df):
+        df = df.reset_index()
+        diff = df['Ano'] + df.index
+        return df.groupby(diff)['Ano'].size().max()
+
     def get_melhor_posicao(self):
         return np.min(self.df.Posicao)
 
@@ -102,12 +110,27 @@ class InfoMusica:
 
     def get_numero_aparicoes(self):
         return np.size(self.df.Posicao)
+    
+    def get_numero_aparicoes_consecutivas(self):        
+        return self.__contar_consecutivos(self.df)
+    
+    def get_numero_podios(self):
+        return np.size(self.__listar_podios(self.df)['Musica'])
+    
+    def get_numero_podios_consecutivos(self):
+        return np.nan_to_num(self.__contar_consecutivos(self.__listar_podios(self.df))).astype('int')
 
     def get_decada(self):
         return self.df.Decada_Lancamento_Album.values[0]
 
     def get_posicao_media(self):
         return np.mean(self.df.Posicao).round(0).astype(int)
+    
+    def get_edicao_melhor_posicao(self):
+        return "Edição " + self.df[self.df['Posicao'] == self.get_melhor_posicao()].Edicao.values[-1]
+    
+    def get_edicao_pior_posicao(self):
+        return "Edição " + self.df[self.df['Posicao'] == self.get_pior_posicao()].Edicao.values[-1]
 
 class InfoCuriosidade:
 

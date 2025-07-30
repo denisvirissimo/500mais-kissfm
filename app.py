@@ -13,6 +13,18 @@ locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 logo_file = './resources/logo.png'
 icon_file = './resources/favicon.ico'
 
+def configurar_css():
+    st.markdown(
+    """
+<style>
+    [data-testid='stMetricDeltaIcon-Up'] {
+        display: none;
+    }
+</style>
+""",
+    unsafe_allow_html=True,
+)
+
 def plotar_grafico(fig):
     st.plotly_chart(fig, use_container_width=True)
 
@@ -68,6 +80,8 @@ st.set_page_config(layout="wide",
                         'Report a bug': "https://github.com/denisvirissimo/500mais-kissfm/issues",
                         'About': "Desenvolvido por [Denis Bruno Viríssimo](https://www.linkedin.com/in/denisbruno/)"
                     })
+
+configurar_css()
 
 if 'opt_pink_floyd' not in st.session_state:
     st.session_state.opt_pink_floyd = False
@@ -348,13 +362,20 @@ with col2:
           st.text('')
 
       if (musica_selecionada != None):
-          row8_1, row8_2, row8_3, row8_4, row8_5 = st.columns(5)
+          row8_1, row8_2, row8_3, row8_4 = st.columns(4)
           info_musica = InfoMusica(core.filtrar_inconsistencias(df_listagem), musica_selecionada)
-          row8_1.metric(label="Melhor Posição", value=info_musica.get_melhor_posicao())
-          row8_2.metric(label="Pior Posição", value=info_musica.get_pior_posicao())
-          row8_3.metric(label="Posição Média", value=info_musica.get_posicao_media())
-          row8_4.metric(label="Aparições", value=info_musica.get_numero_aparicoes())
-          row8_5.metric(label="Década", value=info_musica.get_decada())
+          row8_1.metric(label="📈 Melhor Posição", value=str(info_musica.get_melhor_posicao()) + 'ª', delta=info_musica.get_edicao_melhor_posicao(), delta_color='off')
+          row8_2.metric(label="📉 Pior Posição", value=str(info_musica.get_pior_posicao()) + "ª", delta=info_musica.get_edicao_pior_posicao(), delta_color='off')
+          row8_3.metric(label="📊 Posição Média", value=str(info_musica.get_posicao_media()) + "ª")
+          row8_4.metric(label="🗓️ Década", value=info_musica.get_decada())
+          st.text('')
+          row9_1, row9_2, row9_3, row9_4= st.columns(4)
+          info_musica = InfoMusica(core.filtrar_inconsistencias(df_listagem), musica_selecionada)
+          row9_1.metric(label="#️⃣ Número Aparições", value=info_musica.get_numero_aparicoes())
+          row9_2.metric(label='🔥 Aparições Consecutivas', value=info_musica.get_numero_aparicoes_consecutivas())
+          row9_3.metric(label='🏅 Número Pódios', value=info_musica.get_numero_podios())
+          row9_4.metric(label='🏅 Pódios Consecutivos', value=info_musica.get_numero_podios_consecutivos())
+          
 
       with row6_2:
 
