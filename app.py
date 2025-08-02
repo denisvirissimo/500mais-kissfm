@@ -82,7 +82,8 @@ st.set_page_config(layout="wide",
                     menu_items={
                         'Get Help': 'https://github.com/denisvirissimo/500mais-kissfm',
                         'Report a bug': "https://github.com/denisvirissimo/500mais-kissfm/issues",
-                        'About': "Desenvolvido por [Denis Bruno Viríssimo](https://www.linkedin.com/in/denisbruno/)"
+                        'About': '''Desenvolvido por [Denis Bruno Viríssimo](https://www.linkedin.com/in/denisbruno/)   
+                        Versão 1.3.3'''
                     })
 
 configurar_css()
