@@ -3,7 +3,7 @@ import base64
 import core_functions as core
 import charts as ch
 import components as components
-from info import InfoEdicao, InfoMusica, InfoCuriosidade
+from info import InfoEdicao, InfoMusica, InfoArtista, InfoCuriosidade
 import locale
 import streamlit as st
 from streamlit_timeline import timeline
@@ -12,6 +12,18 @@ from streamlit_timeline import timeline
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 logo_file = './resources/logo.png'
 icon_file = './resources/favicon.ico'
+
+def configurar_css():
+    st.markdown(
+    """
+<style>
+    [data-testid='stMetricDeltaIcon-Up'] {
+        display: none;
+    }
+</style>
+""",
+    unsafe_allow_html=True,
+)
 
 def plotar_grafico(fig):
     st.plotly_chart(fig, use_container_width=True)
@@ -56,6 +68,10 @@ def get_dicionario_musicas(df_data):
     return core.get_dicionario_musicas(df_data)
 
 @st.cache_data
+def get_dicionario_artistas(df_data):
+    return core.get_dicionario_artistas(df_data)
+
+@st.cache_data
 def show_data(df_data):
     st.dataframe(data=df_data.reset_index(drop=True).style.format(thousands=None), hide_index=True)
 
@@ -68,6 +84,8 @@ st.set_page_config(layout="wide",
                         'Report a bug': "https://github.com/denisvirissimo/500mais-kissfm/issues",
                         'About': "Desenvolvido por [Denis Bruno Viríssimo](https://www.linkedin.com/in/denisbruno/)"
                     })
+
+configurar_css()
 
 if 'opt_pink_floyd' not in st.session_state:
     st.session_state.opt_pink_floyd = False
@@ -319,50 +337,86 @@ with col2:
 
     with tab_edicoes:
 
-      row6_1, row6_2= st.columns((3.8, 3.8), gap="small")
+        row6_1, row6_2= st.columns((3.8, 3.8), gap="small")
 
-      with row6_1:
-          st.subheader('Top 10 de todas as edições')
-          components.top10(core.get_top_n_todas_edicoes(df_listagem, 10))
-          st.caption('Para entender como essa lista foi criada, consulte [a explicação](https://github.com/denisvirissimo/500mais-kissfm#as-maiores-de-todos-os-tempos).')
-      st.divider()
+        with row6_1:
+            st.subheader('Top 10 de todas as edições')
+            components.top10(core.get_top_n_todas_edicoes(df_listagem, 10))
+            st.caption('Para entender como essa lista foi criada, consulte [a explicação](https://github.com/denisvirissimo/500mais-kissfm#as-maiores-de-todos-os-tempos).')
+        st.divider()
 
-      st.subheader('Mapa de calor de músicas presentes em todas as edições')
-      plotar_mapa_calor(ch.get_mapa_calor(core.get_musicas_todos_anos(df_listagem), "Edição", "Música", "Posição", "Edições", "Músicas"))
+        st.subheader('Mapa de calor de músicas presentes em todas as edições')
+        plotar_mapa_calor(ch.get_mapa_calor(core.get_musicas_todos_anos(df_listagem), "Edição", "Música", "Posição", "Edições", "Músicas"))
 
-      st.divider()
+        st.divider()
 
-      row7_1, row7_2= st.columns((3.5, 4.1), gap="small")
-      with row7_1:
-          st.subheader('Informações da música')
+        row7_1, row7_2= st.columns((3.5, 4.1), gap="small")
+        with row7_1:
+            st.subheader('Informações da música')
 
-          lista_select = get_dicionario_musicas(df_listagem)
-          musica_selecionada = st.selectbox(
+            lista_select_musicas = get_dicionario_musicas(df_listagem)
+            musica_selecionada = st.selectbox(
               'Escolha a música',
               label_visibility='hidden',
-              options=lista_select.keys(),
+              options=lista_select_musicas.keys(),
               index=None,
               placeholder='Digite ou escolha a música',
-              format_func=lambda l: lista_select[l])
+              format_func=lambda l: lista_select_musicas[l])
 
-          st.text('')
+            st.text('')
 
-      if (musica_selecionada != None):
-          row8_1, row8_2, row8_3, row8_4, row8_5 = st.columns(5)
-          info_musica = InfoMusica(core.filtrar_inconsistencias(df_listagem), musica_selecionada)
-          row8_1.metric(label="Melhor Posição", value=info_musica.get_melhor_posicao())
-          row8_2.metric(label="Pior Posição", value=info_musica.get_pior_posicao())
-          row8_3.metric(label="Posição Média", value=info_musica.get_posicao_media())
-          row8_4.metric(label="Aparições", value=info_musica.get_numero_aparicoes())
-          row8_5.metric(label="Década", value=info_musica.get_decada())
+        if (musica_selecionada != None):
+            row8_1, row8_2, row8_3, row8_4 = st.columns(4)
+            info_musica = InfoMusica(core.filtrar_inconsistencias(df_listagem), musica_selecionada)
+            row8_1.metric(label="📈 Melhor Posição", value=str(info_musica.get_melhor_posicao()) + 'ª', delta=info_musica.get_edicao_melhor_posicao(), delta_color='off')
+            row8_2.metric(label="📉 Pior Posição", value=str(info_musica.get_pior_posicao()) + "ª", delta=info_musica.get_edicao_pior_posicao(), delta_color='off')
+            row8_3.metric(label="📊 Posição Média", value=str(info_musica.get_posicao_media()) + "ª")
+            row8_4.metric(label="🗓️ Década", value=info_musica.get_decada())
+            st.text('')
+            row9_1, row9_2, row9_3, row9_4= st.columns(4)
+            row9_1.metric(label="#️⃣ Número Aparições", value=info_musica.get_numero_aparicoes())
+            row9_2.metric(label='🔥 Aparições Consecutivas', value=info_musica.get_numero_aparicoes_consecutivas())
+            row9_3.metric(label='🏅 Número Pódios', value=info_musica.get_numero_podios())
+            row9_4.metric(label='🏅 Pódios Consecutivos', value=info_musica.get_numero_podios_consecutivos())
 
-      with row6_2:
+        st.divider()
 
-          st.subheader('')
-          plotar_grafico_race(core.get_dados_cumulativos(load_data(False), 'Artista'),
+        row10_1, row10_2= st.columns((3.5, 4.1), gap="small")
+        with row10_1:
+            st.subheader('Informações do artista')
+
+            lista_select_artistas = get_dicionario_artistas(df_listagem)
+            artista_selecionado = st.selectbox(
+                'Escolha o artista',
+                label_visibility='hidden',
+                options=lista_select_artistas.keys(),
+                index=None,
+                placeholder='Digite ou escolha o artista',
+                format_func=lambda l: lista_select_artistas[l])
+
+            st.text('')
+
+        if (artista_selecionado != None):
+            row11_1, row11_2, row11_3, row11_4 = st.columns(4)
+            info_artista = InfoArtista(core.filtrar_inconsistencias(df_listagem), artista_selecionado)
+            row11_1.metric(label="📈 Melhor Posição", value=str(info_artista.get_melhor_posicao()) + 'ª', delta=info_artista.get_edicao_melhor_posicao(), delta_color='off')
+            row11_2.metric(label="📉 Pior Posição", value=str(info_artista.get_pior_posicao()) + "ª", delta=info_artista.get_edicao_pior_posicao(), delta_color='off')
+            row11_3.metric(label="🎶 Total Músicas", value=info_artista.get_total_musicas())
+            row11_4.metric(label="️#️⃣ Número Edições", value=info_artista.get_total_edicoes())
+            st.text('')
+            row12_1, row12_2, row12_3, row12_4= st.columns(4)
+            row12_1.metric(label="️🎵Média Músicas", value=locale.format_string("%.2f", info_artista.get_media_musicas_por_edicao(), grouping = True), delta="por edição", delta_color='off')
+            row12_2.metric(label='🔥 Aparições Consecutivas', value=info_artista.get_numero_aparicoes_consecutivas())
+            row12_3.metric(label='🏅 Número Pódios', value=info_artista.get_numero_podios())
+            row12_4.metric(label='🏅 Pódios Consecutivos', value=info_artista.get_numero_podios_consecutivos())
+
+        with row6_2:
+
+            st.subheader('')
+            plotar_grafico_race(core.get_dados_cumulativos(load_data(False), 'Artista'),
                               'Artista',
                               'Top 10 Artistas com mais músicas nas edições')
 
-          plotar_grafico_race(core. get_dados_cumulativos(load_data(False), 'Genero'),
+            plotar_grafico_race(core. get_dados_cumulativos(load_data(False), 'Genero'),
                               'Genero',
                               'Top 10 Gêneros Musicais com mais músicas nas edições')

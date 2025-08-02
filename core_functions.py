@@ -107,6 +107,15 @@ def get_dicionario_musicas(df_data):
 
     return dict((y, x) for x, y in df)
 
+def get_dicionario_artistas(df_data):
+    df = (filtrar_inconsistencias(df_data)
+                .drop_duplicates('Artista')
+                .apply(lambda row: (row['Artista'], row['Artista']), axis=1)
+                .sort_values()
+                .tolist())
+    
+    return dict((y, x) for x, y in df)
+
 def get_acumulado_musicas_distintas(df_data):
     edicoes = np.unique(df_data.Edicao).tolist()
     distinta_acumulado_periodo = []

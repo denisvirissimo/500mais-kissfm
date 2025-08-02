@@ -41,7 +41,7 @@ def get_grafico_barra_horizontal(df_data, xdata, ydata, xlabel, ylabel, x_diagon
     return fig
 
 def get_grafico_barra_stacked(df_data, xdata, ydata, ldata, xlabel, ylabel, llabel):
-    fig = px.bar(df_data, x=xdata, y=ydata, color=ldata, color_discrete_sequence=px.colors.qualitative.Dark24)
+    fig = px.bar(df_data, x=xdata, y=ydata, color=ldata, color_discrete_sequence=px.colors.qualitative.Dark24, barmode='relative')
     fig.update_layout(xaxis_type='category', xaxis_title = xlabel, yaxis_title=ylabel, legend_title=llabel, legend_traceorder="reversed")
     fig.update_traces(hovertemplate='%{fullData.name}<br>' + xlabel + ": %{label}<br>" + ylabel + ": %{value}<extra></extra>")
     fig.update_xaxes(categoryorder='array', categoryarray=df_data.sort_values(xdata)[xdata].to_list())
