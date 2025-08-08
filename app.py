@@ -73,7 +73,7 @@ def get_dicionario_artistas(df_data):
 
 @st.cache_data
 def show_data(df_data):
-    st.dataframe(data=df_data.reset_index(drop=True).style.format(thousands=None), hide_index=True)
+    st.dataframe(data=df_data.reset_index(drop=True), hide_index=True)
 
 #App
 st.set_page_config(layout="wide", 
