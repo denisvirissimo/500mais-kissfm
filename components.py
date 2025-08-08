@@ -35,4 +35,4 @@ def top10(df_data):
         </div>
 
     """
-    return components.html(html, height=600)
+    return components.html(html, height=600, width=550)
