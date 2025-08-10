@@ -248,7 +248,8 @@ with col2:
             list_edicoes = dict(zip(edicoes, anos))
             edicao_selecionada = st.selectbox ("Edição", list_edicoes.keys(), key = 'edicao_selecionada')
 
-        info_edicao = InfoEdicao(df_listagem, list_edicoes[edicao_selecionada])
+        ano_edicao = list_edicoes[edicao_selecionada]
+        info_edicao = InfoEdicao(df_listagem, ano_edicao)
         st.divider()
 
         st.subheader("Linha do tempo das músicas na edição")
@@ -283,6 +284,18 @@ with col2:
             plotar_grafico(ch.get_grafico_pizza(info_edicao.get_lista_generos(), 'Quantidade', 'Genero', 'Músicas', 'Gênero Musical'))
 
         st.divider()
+        if (ano_edicao != anos[0]):
+            row0_1, row0_2 = st.columns((3.5, 3.5), gap="large")
+
+            with row0_1:
+                st.subheader('Maiores subidas no ranking')
+                plotar_grafico(ch.get_grafico_slope(core.get_variacao_entre_anos(df_listagem, ano_edicao -1, ano_edicao, 5, False), 'Ano', ano_edicao - 1, ano_edicao, 'Posicao_Anterior', 'Posicao_Atual', 'Musica', 'Artista', 'Variaçãos no Ranking'))
+
+            with row0_2:
+                st.subheader('Maiores quedas no ranking')
+                plotar_grafico(ch.get_grafico_slope(core.get_variacao_entre_anos(df_listagem, ano_edicao -1, ano_edicao, 5, True), 'Ano', ano_edicao - 1, ano_edicao, 'Posicao_Anterior', 'Posicao_Atual', 'Musica', 'Artista', 'Variaçãos no Ranking'))
+
+            st.divider()
 
         st.subheader('Mapa de Gêneros Músicais')
         plotar_grafico(ch.get_analise_edicao_treemap(info_edicao.get_lista_generos(), 'Genero', 'Quantidade', 'Gênero', 'Quantidade de Músicas'))

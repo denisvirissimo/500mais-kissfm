@@ -121,3 +121,33 @@ def gerar_grafico_race(df_data, atributo, titulo):
                               tick_template='{x:.0f}',
                               fixed_max=True,
                               filter_column_colors=True).data
+
+def get_grafico_slope(df_data, xlabel, xdata1, xdata2, ydata1, ydata2, legend1, legend2, title):
+    fig = go.Figure()
+
+    for _, row in df_data.iterrows():
+        fig.add_trace(go.Scatter(
+            y=[row[ydata1], row[ydata2]],
+            mode='lines+markers+text',
+            name=f"{row[legend1]} - {row[legend2]}",
+            text=[int(row[xdata1]), int(row[xdata2])],
+            textposition='bottom right',
+            line=dict(width=2),
+            hoverinfo='none',
+        ))
+
+    fig.update_layout(yaxis=dict(autorange='reversed', title=title, showticklabels=False),
+                      xaxis=dict(
+                            tickvals=[0, 1],
+                            ticktext=[xdata1,xdata2],
+                            title=xlabel
+                            ),
+                      height=600,
+                      legend=dict(
+                        orientation="h",  
+                        yanchor="bottom", 
+                        y=-0.3,           
+                        xanchor="center", 
+                        x=0.5             
+                    ))
+    return fig

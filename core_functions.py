@@ -337,3 +337,30 @@ def get_dados_cumulativos(df_data, atributo):
     df_data = df_data.sort_values(by='Count', ascending=False).groupby('Ano').head(len(df_data))
 
     return df_data
+
+def get_variacao_entre_anos(df, ano_inicial, ano_final, quantidade_musicas, quedas):
+    anos_para_comparar = [ano_inicial, ano_final]
+
+    df_sorted = df.sort_values(by=['Musica', 'Artista', 'Ano'])
+    df_sorted = df_sorted[df_sorted['Ano'].isin(anos_para_comparar)]
+
+    pivot = df_sorted.pivot_table(index=['Musica', 'Artista'], columns='Ano', values='Posicao').reset_index()
+
+    pivot.columns.name = None
+    pivot = pivot.rename(columns={
+        anos_para_comparar[0]: ano_inicial,
+        anos_para_comparar[1]: ano_final
+    })
+
+    pivot['Variacao'] = pivot[ano_inicial] - pivot[ano_final]
+
+    if (quedas):
+        top_n = pivot.sort_values(by='Variacao').head(quantidade_musicas)
+        top_n['Posicao_Anterior'] = top_n[ano_inicial] *1.5
+        top_n['Posicao_Atual'] = top_n[ano_final]
+    else:
+        top_n = pivot.sort_values(by='Variacao', ascending=False).head(quantidade_musicas)
+        top_n['Posicao_Anterior'] = top_n[ano_inicial]
+        top_n['Posicao_Atual'] = top_n[ano_final] *1.5
+
+    return top_n
