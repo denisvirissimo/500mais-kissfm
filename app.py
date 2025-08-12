@@ -337,6 +337,9 @@ with col2:
         curiosidade = info_curiosidades.get_artista_mais_musicas_edicao()
         st.markdown('* O recorde de mais músicas em uma única edição é de {} com impressionantes {} músicas na edição {}.'.format(curiosidade[0], curiosidade[1], curiosidade[2]))
 
+        curiosidade = info_curiosidades.get_one_hit_wonder()
+        st.markdown('* {} ({}%) artistas aparceram nas edições com uma única música (os chamados "one-hit wonders")'.format(curiosidade[0], curiosidade[1]))
+        
         curiosidade = info_curiosidades.get_album_mais_musicas_edicao()
         st.markdown('* O álbum/single com mais músicas em uma única edição é {} com {} músicas na edição {}.'.format(curiosidade[0], curiosidade[1], curiosidade[2]))
 
