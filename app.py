@@ -315,11 +315,16 @@ with col2:
                                 analisemusica_medida_selecionada + ' de ' + analisemusica_edicao_selecionada))
 
         st.divider()
+        st.subheader('One-Hit Wonders vs Recorrentes')
+        st.markdown('A análise de artistas que tiveram somente uma única música diferente em edições até hoje vs artistas que tiveram pelo menos duas músicas diferentes ajuda a compreender a preferência dos ouvintes')
+        plotar_grafico(ch.get_grafico_linha(core.get_onehit_por_edicao(df_listagem_filtrada), 'Edicao', 'Recorrentes', 'Edições', 'Artistas', 'Recorrentes', 'One_Hit_Wonders', 'One-Hit Wonders'))
+
+        st.divider()
         st.subheader('Idade das músicas')
         st.markdown('A análise de idade das músicas demonstra se há uma tradição de votação em músicas mais antigas (especialmente da década de 70) ou se têm sido incorporadas músicas mais recentes na listagem.')
         st.markdown('A idade é recalculada a cada edição.')
 
-        plotar_grafico(ch.get_grafico_linha(core.get_idade_por_edicao(df_listagem_filtrada), 'Edicao', 'Media_Idade_Lancamento', 'Edições', 'Média de Idade', 'Mediana_Idade_Lancamento', 'Mediana de Idade'))
+        plotar_grafico(ch.get_grafico_linha(core.get_idade_por_edicao(df_listagem_filtrada), 'Edicao', 'Media_Idade_Lancamento', 'Edições', 'Idade', 'Média de Idade', 'Mediana_Idade_Lancamento', 'Mediana de Idade'))
 
     with tab_curiosidades:
 

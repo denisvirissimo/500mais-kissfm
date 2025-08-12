@@ -324,6 +324,28 @@ def get_idade_por_edicao(df_data):
 
     return df.groupby(['Edicao', 'Media_Idade_Lancamento', 'Mediana_Idade_Lancamento']).size().reset_index()
 
+def get_onehit_por_edicao(df_data):
+    df = df_data.copy()
+    df = filtrar_inconsistencias(df)
+
+    contagem = get_musicas_distintas(df).groupby('Artista').count().reset_index()[['Artista', 'Ano']]
+    contagem.columns = ['Artista', 'Count']
+
+    one_hit_wonders = contagem[contagem['Count'] == 1].sort_values(by='Artista')
+    one_hit_wonders = (pd.merge(df, one_hit_wonders[['Artista']], on='Artista', how='inner')
+                        .groupby('Edicao')['Artista']
+                        .nunique()
+                        .reset_index(name='One_Hit_Wonders'))
+
+    artistas_recorrentes = contagem[contagem['Count'] > 1].sort_values(by='Count', ascending=False)
+    artistas_recorrentes = (pd.merge(df, artistas_recorrentes[['Artista']], on='Artista', how='inner')
+                            .groupby('Edicao')['Artista']
+                            .nunique()
+                            .reset_index(name='Recorrentes'))
+
+    return pd.merge(one_hit_wonders, artistas_recorrentes, on='Edicao', how='outer').fillna(0)
+
+
 def get_dados_cumulativos(df_data, atributo):
     df_data = filtrar_inconsistencias(df_data)
     df_data = (df_data.groupby(['Ano', atributo])
