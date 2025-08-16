@@ -401,6 +401,9 @@ with col2:
             row_infomusica_col7.metric(label='🏅 Número Pódios', value=info_musica.get_numero_podios())
             row_infomusica_col8.metric(label='🏅 Pódios Consecutivos', value=info_musica.get_numero_podios_consecutivos())
 
+            st.subheader('Histórico')
+            plotar_grafico(ch.get_grafico_linha(info_musica.get_posicoes(),'Ano', 'Posicao', 'Ano', 'Posição no ranking', '', reversed=True))
+
         st.divider()
 
         row_aneliseartista_col1, row_aneliseartista_col2= st.columns((3.5, 4.1), gap="small")
