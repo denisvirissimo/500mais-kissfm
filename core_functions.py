@@ -253,6 +253,21 @@ def get_generos_top_n(df_data, top_n):
           .reset_index(name='Total_Aparicoes'))
     return df
 
+def get_artistas_posicoes_semelhantes_top_n(df_data, top_n):
+    def analisar_retorno(grupo):
+        grupo = grupo.sort_values('Ano')
+        grupo['Posicao_Anterior'] = grupo['Posicao'].shift(1)
+        return grupo
+
+    df = df_data.groupby('Musica', group_keys=False)[['Ano', 'Posicao', 'Artista', 'Musica']].apply(analisar_retorno).dropna(subset=['Posicao_Anterior'])
+    df['Posicao_Semelhante'] = np.abs(df['Posicao'] - df['Posicao_Anterior']) <= 5
+
+    df = (df.groupby('Artista')['Posicao_Semelhante']
+                            .mean()
+                            .reset_index())
+
+    return df.sort_values(by=['Posicao_Semelhante', 'Artista'], ascending=[False, True]).head(top_n)
+
 def get_top_n_musicas_media_posicao(df_data, top_n):
     df = get_musicas_media_posicao(df_data).loc[:,['Artista', 'Musica']]
     df['Posicao'] = range(1, len(df) + 1)

@@ -94,7 +94,7 @@ if 'opt_pink_floyd' not in st.session_state:
 df_listagem = load_data(st.session_state.opt_pink_floyd)
 
 list_analises_edicao = {"Músicas por Artista":'Musica_Artista', "Álbuns por Artista":'Album_Artista', "Músicas por Gênero":'Musica_Genero', "Gêneros por País":'Genero_Pais', "Duração":'Duracao'}
-list_variaveis_topn = {"Artista": 'Artista', "Música": 'Musica', "Álbum/Single": 'Album', "Gênero": 'Genero'}
+list_variaveis_topn = {"Artista": 'Artista', "Música": 'Musica', "Álbum/Single": 'Album', "Gênero": 'Genero', "Artistas com músicas em posições similares": 'Artista_Posicao'}
 medidas = ["Média", "Mediana", "Máximo"]
 
 
@@ -194,6 +194,8 @@ with col2:
         with row_topn_col1:
             top_n = st.slider('Qual Top N você deseja visualizar?', 1, 50, 3)
             variavel_topn_selecionada = st.selectbox ("Escolha a variável para visualizar no Top", list(list_variaveis_topn.keys()), key = 'variavel_topn')
+            if (list_variaveis_topn[variavel_topn_selecionada] == 'Artista_Posicao'):
+                st.caption('Considera-se música em posição similar aquela com uma variação de até 5 posições (para mais ou para menos)')
         with row_topn_col2:
             match list_variaveis_topn[variavel_topn_selecionada]:
                 case 'Artista':
@@ -204,6 +206,8 @@ with col2:
                     st.dataframe(data=core.get_albuns_top_n(df_listagem_filtrada, top_n), hide_index=True, use_container_width=True, height=400, column_config={"Album_Single":"Álbum/Single", "Total_Aparicoes": "Número Total de Aparições"})
                 case 'Genero':
                     st.dataframe(data=core.get_generos_top_n(df_listagem_filtrada, top_n), hide_index=True, use_container_width=True, height=400, column_config={"Genero":"Gênero", "Total_Aparicoes": "Número Total de Aparições"})
+                case 'Artista_Posicao':
+                    st.dataframe(data=core.get_artistas_posicoes_semelhantes_top_n(df_listagem_filtrada, top_n), hide_index=True, use_container_width=True, height=400, column_config={"Artista": "Artista", "Posicao_Semelhante": st.column_config.NumberColumn("Porcentagem de vezes em posições similares", format="percent")})
                 case default:
                     st.write('Escolha uma opção')
 
