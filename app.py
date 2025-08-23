@@ -12,6 +12,7 @@ from streamlit_timeline import timeline
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 logo_file = './resources/logo.png'
 icon_file = './resources/favicon.ico'
+versao = '1.3.4'
 
 def configurar_css():
     st.markdown(
@@ -83,7 +84,7 @@ st.set_page_config(layout="wide",
                         'Get Help': 'https://github.com/denisvirissimo/500mais-kissfm',
                         'Report a bug': "https://github.com/denisvirissimo/500mais-kissfm/issues",
                         'About': '''Desenvolvido por [Denis Bruno Viríssimo](https://www.linkedin.com/in/denisbruno/)   
-                        Versão 1.3.3'''
+                        Versão {}'''.format(versao)
                     })
 
 configurar_css()
