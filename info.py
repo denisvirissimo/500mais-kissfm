@@ -133,6 +133,9 @@ class InfoMusica(InfoBase):
 
     def get_posicao_media(self):
         return np.mean(self.df.Posicao).round(0).astype(int)
+
+    def get_posicoes(self):
+        return self.df.sort_values(by='Ano', ascending=True)
     
 class InfoArtista(InfoBase):
     
@@ -181,6 +184,12 @@ class InfoCuriosidade:
     def get_artista_mais_musicas_edicao(self):
         df = self.__agrupar_dataframe(['Edicao', 'Artista']).sort_values('Count').tail(1)
         return [df.Artista.values[0], df.Count.values[0], df.Edicao.values[0]]
+    
+    def get_one_hit_wonder(self):
+        df = self.df.drop_duplicates(subset=['Artista', 'Musica', 'Observacao']).groupby('Artista').count().reset_index()[['Artista', 'Ano']]
+        df.columns = ['Artista', 'Count']
+        one_hit_wonders = df[df['Count'] == 1].sort_values(by='Artista')
+        return [one_hit_wonders.shape[0], np.round(one_hit_wonders.shape[0]/df.shape[0]*100,2)]
 
     def get_album_mais_musicas_edicao(self):
         df = self.__agrupar_dataframe(['Edicao', 'Album_Single']).sort_values('Count').sort_values('Count').tail(1)

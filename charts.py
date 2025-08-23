@@ -2,13 +2,15 @@ import plotly.express as px
 import plotly.graph_objects as go
 import bar_chart_race as bcr
 
-def get_grafico_linha(df_data, xdata, ydata1, xlabel, ylabel1, ydata2 = None, ylabel2 = None):
+def get_grafico_linha(df_data, xdata, ydata1, xlabel, ylabel, ylabel1, ydata2 = None, ylabel2 = None, reversed = False):
     fig = px.line()
-    fig.update_layout(xaxis_type='category', xaxis_title = xlabel, yaxis_title=ylabel1, separators=',.')
+    fig.update_layout(xaxis_type='category', xaxis_title = xlabel, yaxis_title=ylabel, separators=',.')
     fig.add_scatter(x=df_data[xdata], y=df_data[ydata1], name=ylabel1)
     if (ydata2 != None):
         fig.add_scatter(x=df_data[xdata], y=df_data[ydata2], name=ylabel2)
     fig.update_traces(hovertemplate=xlabel + ': %{x}<br> Valor: %{y}<extra></extra>')
+    if (reversed):
+        fig.update_layout(yaxis=dict(autorange='reversed'))
 
     return fig
 
@@ -41,7 +43,7 @@ def get_grafico_barra_horizontal(df_data, xdata, ydata, xlabel, ylabel, x_diagon
     return fig
 
 def get_grafico_barra_stacked(df_data, xdata, ydata, ldata, xlabel, ylabel, llabel):
-    fig = px.bar(df_data, x=xdata, y=ydata, color=ldata, color_discrete_sequence=px.colors.qualitative.Dark24, barmode='relative')
+    fig = px.bar(df_data, x=xdata, y=ydata, color=ldata, color_discrete_sequence=px.colors.qualitative.Dark24, barmode='stack')
     fig.update_layout(xaxis_type='category', xaxis_title = xlabel, yaxis_title=ylabel, legend_title=llabel, legend_traceorder="reversed")
     fig.update_traces(hovertemplate='%{fullData.name}<br>' + xlabel + ": %{label}<br>" + ylabel + ": %{value}<extra></extra>")
     fig.update_xaxes(categoryorder='array', categoryarray=df_data.sort_values(xdata)[xdata].to_list())
@@ -121,3 +123,33 @@ def gerar_grafico_race(df_data, atributo, titulo):
                               tick_template='{x:.0f}',
                               fixed_max=True,
                               filter_column_colors=True).data
+
+def get_grafico_slope(df_data, xlabel, xdata1, xdata2, ydata1, ydata2, legend1, legend2, title):
+    fig = go.Figure()
+
+    for _, row in df_data.iterrows():
+        fig.add_trace(go.Scatter(
+            y=[row[ydata1], row[ydata2]],
+            mode='lines+markers+text',
+            name=f"{row[legend1]} - {row[legend2]}",
+            text=[int(row[xdata1]), int(row[xdata2])],
+            textposition='bottom right',
+            line=dict(width=2),
+            hoverinfo='none',
+        ))
+
+    fig.update_layout(yaxis=dict(autorange='reversed', title=title, showticklabels=False),
+                      xaxis=dict(
+                            tickvals=[0, 1],
+                            ticktext=[xdata1,xdata2],
+                            title=xlabel
+                            ),
+                      height=600,
+                      legend=dict(
+                        orientation="h",  
+                        yanchor="bottom", 
+                        y=-0.3,           
+                        xanchor="center", 
+                        x=0.5             
+                    ))
+    return fig

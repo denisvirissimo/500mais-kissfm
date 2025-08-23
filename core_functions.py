@@ -253,6 +253,21 @@ def get_generos_top_n(df_data, top_n):
           .reset_index(name='Total_Aparicoes'))
     return df
 
+def get_artistas_posicoes_semelhantes_top_n(df_data, top_n):
+    def analisar_retorno(grupo):
+        grupo = grupo.sort_values('Ano')
+        grupo['Posicao_Anterior'] = grupo['Posicao'].shift(1)
+        return grupo
+
+    df = df_data.groupby('Musica', group_keys=False)[['Ano', 'Posicao', 'Artista', 'Musica']].apply(analisar_retorno).dropna(subset=['Posicao_Anterior'])
+    df['Posicao_Semelhante'] = np.abs(df['Posicao'] - df['Posicao_Anterior']) <= 5
+
+    df = (df.groupby('Artista')['Posicao_Semelhante']
+                            .mean()
+                            .reset_index())
+
+    return df.sort_values(by=['Posicao_Semelhante', 'Artista'], ascending=[False, True]).head(top_n)
+
 def get_top_n_musicas_media_posicao(df_data, top_n):
     df = get_musicas_media_posicao(df_data).loc[:,['Artista', 'Musica']]
     df['Posicao'] = range(1, len(df) + 1)
@@ -324,6 +339,28 @@ def get_idade_por_edicao(df_data):
 
     return df.groupby(['Edicao', 'Media_Idade_Lancamento', 'Mediana_Idade_Lancamento']).size().reset_index()
 
+def get_onehit_por_edicao(df_data):
+    df = df_data.copy()
+    df = filtrar_inconsistencias(df)
+
+    contagem = get_musicas_distintas(df).groupby('Artista').count().reset_index()[['Artista', 'Ano']]
+    contagem.columns = ['Artista', 'Count']
+
+    one_hit_wonders = contagem[contagem['Count'] == 1].sort_values(by='Artista')
+    one_hit_wonders = (pd.merge(df, one_hit_wonders[['Artista']], on='Artista', how='inner')
+                        .groupby('Edicao')['Artista']
+                        .nunique()
+                        .reset_index(name='One_Hit_Wonders'))
+
+    artistas_recorrentes = contagem[contagem['Count'] > 1].sort_values(by='Count', ascending=False)
+    artistas_recorrentes = (pd.merge(df, artistas_recorrentes[['Artista']], on='Artista', how='inner')
+                            .groupby('Edicao')['Artista']
+                            .nunique()
+                            .reset_index(name='Recorrentes'))
+
+    return pd.merge(one_hit_wonders, artistas_recorrentes, on='Edicao', how='outer').fillna(0)
+
+
 def get_dados_cumulativos(df_data, atributo):
     df_data = filtrar_inconsistencias(df_data)
     df_data = (df_data.groupby(['Ano', atributo])
@@ -337,3 +374,30 @@ def get_dados_cumulativos(df_data, atributo):
     df_data = df_data.sort_values(by='Count', ascending=False).groupby('Ano').head(len(df_data))
 
     return df_data
+
+def get_variacao_entre_anos(df, ano_inicial, ano_final, quantidade_musicas, quedas):
+    anos_para_comparar = [ano_inicial, ano_final]
+
+    df_sorted = df.sort_values(by=['Musica', 'Artista', 'Ano'])
+    df_sorted = df_sorted[df_sorted['Ano'].isin(anos_para_comparar)]
+
+    pivot = df_sorted.pivot_table(index=['Musica', 'Artista'], columns='Ano', values='Posicao').reset_index()
+
+    pivot.columns.name = None
+    pivot = pivot.rename(columns={
+        anos_para_comparar[0]: ano_inicial,
+        anos_para_comparar[1]: ano_final
+    })
+
+    pivot['Variacao'] = pivot[ano_inicial] - pivot[ano_final]
+
+    if (quedas):
+        top_n = pivot.sort_values(by='Variacao').head(quantidade_musicas)
+        top_n['Posicao_Anterior'] = top_n[ano_inicial] *1.5
+        top_n['Posicao_Atual'] = top_n[ano_final]
+    else:
+        top_n = pivot.sort_values(by='Variacao', ascending=False).head(quantidade_musicas)
+        top_n['Posicao_Anterior'] = top_n[ano_inicial]
+        top_n['Posicao_Atual'] = top_n[ano_final] *1.5
+
+    return top_n

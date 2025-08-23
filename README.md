@@ -170,7 +170,7 @@ Para a análise foram desconsideradas as músicas e artistas em branco, que repr
 
 A música "Another Brick in the Wall", do Pink Floyd, é um caso a parte a ser discutido.
 
-Em primeiro lugar, a música e dividida em 3 partes, que podem ser tocadas juntas ou em separado, sendo a parte 2 a mais conhecida. Nos dados obtidos durante a etapa de tratamento, em alguns anos havia a informação de qual parte foi tocado, porém em outros não. Neste caso, quando não foi mencionada a parte foi considerada que o que foi tocado é o conjunto das 3 partes.
+Em primeiro lugar, a música é dividida em 3 partes, que podem ser tocadas juntas ou em separado, sendo a parte 2 a mais conhecida. Nos dados obtidos durante a etapa de tratamento, em alguns anos havia a informação de qual parte foi tocado, porém em outros não. Neste caso, quando não foi mencionada a parte foi considerada que o que foi tocado é o conjunto das 3 partes.
 
 Em segundo lugar, ainda na execução das 3 partes há a possibilidade da execução da música "The Happiest Days of Our Lives", que antecede a parte 2. De novo, em alguns anos há a indicação de que essa música foi tocada junto com a parte 2, e em outros com todas as partes.
 
@@ -182,9 +182,9 @@ Uma forma de corrigir essa distorção é tratar todas elas como se fosse uma s�
 df.loc[df['Musica'].str.contains('Another Brick', na=False), 'Musica'] = 'Another Brick in the Wall'
 ```
 
-### O ano de 23/24
+### A edição de 23/24
 
-No ano de 23/24 a Kiss integrou na listagem das 500+ pela primeira vez músicas em português, o que gerou um grande outlier na amostragem de músicas e algumas distorções (por exemplo). Para uma análise mais precisa o ideal seria ter desconsiderado retirar este ano, porém não foi realizado.
+Na edição de 23/24 a Kiss integrou na listagem das 500+ pela primeira vez músicas em português, o que gerou um grande outlier na amostragem de músicas e algumas distorções (por exemplo). Para uma análise mais precisa o ideal seria ter desconsiderado retirar este ano, porém não foi realizado.
 
 ## Análises
 
@@ -208,7 +208,7 @@ Nenhuma música conquistou um "tricampeonato". "Stairway to Heaven" tem 4 bicamp
 
 Por fim, a análise mais interessante, e que foi o principal motivador desse projeto, foi descobrir quais são as maiores de todos os tempos das 500+!
 
-Para isso foi empregada uma [Média Bayesiana](https://en.wikipedia.org/wiki/Bayesian_average) de todas as posições de uma determinada música. A média bayesiana ajuda a eliminar distorções de músicas que aparecem poquíssimas vezes (1 ou 2) em posições melhores, com pesos atribuídos em função da quantidade de aparições. Esse é um cálculo muito utilizado em tratamento de rankings de produtos e itens a partir de avaliações de usuários, como por exemplo no IMDb e Amazon. Este [artigo](https://arpitbhayani.me/blogs/bayesian-average/) explica bem o conceito.
+Para isso foi empregada uma [Média Bayesiana](https://en.wikipedia.org/wiki/Bayesian_average) de todas as posições de uma determinada música. A média bayesiana ajuda a eliminar distorções de músicas que aparecem pouquíssimas vezes (1 ou 2) em posições melhores, com pesos atribuídos em função da quantidade de aparições. Esse é um cálculo muito utilizado em tratamento de rankings de produtos e itens a partir de avaliações de usuários, como por exemplo no IMDb e Amazon. Este [artigo](https://arpitbhayani.me/blogs/bayesian-average/) explica bem o conceito.
 
 São elas:
 
@@ -225,7 +225,7 @@ São elas:
 |9|The Rolling Stones|(I Can't Get No) Satisfaction|
 |10|Dire Straits|Sultans of Swing|
 
-Em função de ter ficado em 27ª em 23/24, "Stairway to Heaven" acaba ficando em segundo lugar, mesmo tendo vencido em 10 anos de votação. Uma posição a menos (26ª) e já seria um empate. Novamente, o ano 23/24 acabou gerando uma distorção.
+Em função de ter ficado em 27ª em 23/24, "Stairway to Heaven" acaba ficando em segundo lugar, mesmo tendo vencido em 10 anos de votação. Uma posição a menos (26ª) e já seria um empate. Novamente, a edição 23/24 acabou gerando uma distorção.
 
 ## Fontes
 
