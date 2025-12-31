@@ -6,6 +6,8 @@ import time
 #Configuração
 pd.set_option("styler.render.max_elements", 350000)
 dataset_file = './data/500+.csv'
+predictions_file = './data/predicao_2025.csv'
+probability_file = './data/prob_2025.csv'
 
 #Inicialização
 def load_data(agregar_pinkfloyd):
@@ -21,6 +23,11 @@ def load_data(agregar_pinkfloyd):
         df_data.loc[df_data['Musica'].str.contains('Another Brick', na=False), 'Duracao'] = 508
 
     return df_data
+
+def load_predicoes():
+    df_data1 = pd.read_csv(predictions_file)
+    df_data2 = pd.read_csv(probability_file)
+    return df_data1, df_data2
 
 #Funções
 def get_decada(ano):
@@ -401,3 +408,13 @@ def get_variacao_entre_anos(df, ano_inicial, ano_final, quantidade_musicas, qued
         top_n['Posicao_Atual'] = top_n[ano_final] *1.5
 
     return top_n
+
+def get_predicoes(df):
+    df = df[["posicao_ranking", "Artista", "Musica"]]
+    return df
+
+def get_probabilidades(df):
+    df = df.sort_values(by=['prob_aparicao', 'Artista', 'Musica'], ascending=[False, True, True])
+    df["prob_aparicao"] = df["prob_aparicao"] * 100
+    df = df[["Artista", "Musica", "prob_aparicao"]]
+    return df

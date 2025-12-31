@@ -12,7 +12,7 @@ from streamlit_timeline import timeline
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 logo_file = './resources/logo.png'
 icon_file = './resources/favicon.ico'
-versao = '1.3.4'
+versao = '1.4.0'
 
 def configurar_css():
     st.markdown(
@@ -64,6 +64,10 @@ def plotar_grafico_race(df_data, atributo, titulo):
 def load_data(agregar_pinkfloyd):
     return core.load_data(agregar_pinkfloyd)
 
+@st.cache_resource
+def load_predicoes():
+    return core.load_predicoes()
+
 @st.cache_data
 def get_dicionario_musicas(df_data):
     return core.get_dicionario_musicas(df_data)
@@ -93,6 +97,7 @@ if 'opt_pink_floyd' not in st.session_state:
     st.session_state.opt_pink_floyd = False
 
 df_listagem = load_data(st.session_state.opt_pink_floyd)
+df_predicoes, df_probabilidades = load_predicoes()
 
 list_analises_edicao = {"Músicas por Artista":'Musica_Artista', "Álbuns por Artista":'Album_Artista', "Músicas por Gênero":'Musica_Genero', "Gêneros por País":'Genero_Pais', "Duração":'Duracao'}
 list_variaveis_topn = {"Artista": 'Artista', "Música": 'Musica', "Álbum/Single": 'Album', "Gênero": 'Genero', "Artistas com músicas em posições similares": 'Artista_Posicao'}
@@ -176,7 +181,7 @@ with col2:
 
     st.divider()
 
-    tab_geral, tab_edicao, tab_edicoes, tab_analises, tab_curiosidades = st.tabs(["Visão Geral", "Por Edição", "Todas as Edições", "Análises", "Curiosidades"])
+    tab_geral, tab_edicao, tab_edicoes, tab_analises, tab_curiosidades, tab_predicoes = st.tabs(["Visão Geral", "Por Edição", "Todas as Edições", "Análises", "Curiosidades", "Predições"])
 
     with tab_geral:
         st.subheader('Evolução de músicas distintas ao longo dos anos')
@@ -361,6 +366,17 @@ with col2:
 
         curiosidade = info_curiosidades.get_artista_maior_percentual()
         st.markdown('* {} é o artista com maior número de músicas: {}, o que representa {} % do total de músicas.'.format(curiosidade[0], curiosidade[1], curiosidade[2]))
+
+    with tab_predicoes:
+        row_predicoes_col1, row_predicoes_col2 = st.columns((3, 3.5), gap="small")
+
+        with row_predicoes_col1:
+            st.subheader('Predições das 500+ para {}'.format(max(anos)+1))
+            st.dataframe(core.get_predicoes(df_predicoes), hide_index=True, column_config={"posicao_ranking": st.column_config.Column("Posição", width=1), "Artista": "Artista", "Musica": "Música"})
+
+        with row_predicoes_col2:
+            st.subheader('Probabilidades da música aparecer em {}'.format(max(anos)+1))
+            st.dataframe(core.get_probabilidades(df_probabilidades), hide_index=True, column_config={"Artista": "Artista", "Musica": "Música", "prob_aparicao": st.column_config.NumberColumn("Probabildiade de Aparecer", format="%.2f %%")})
 
     with tab_edicoes:
 
