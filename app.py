@@ -64,7 +64,7 @@ def plotar_grafico_race(df_data, atributo, titulo):
 def load_data(agregar_pinkfloyd):
     return core.load_data(agregar_pinkfloyd)
 
-@st.cache_resource
+@st.cache_data
 def load_predicoes():
     return core.load_predicoes()
 
@@ -97,7 +97,7 @@ if 'opt_pink_floyd' not in st.session_state:
     st.session_state.opt_pink_floyd = False
 
 df_listagem = load_data(st.session_state.opt_pink_floyd)
-df_predicoes, df_probabilidades = load_predicoes()
+df_predicoes = load_predicoes()
 
 list_analises_edicao = {"Músicas por Artista":'Musica_Artista', "Álbuns por Artista":'Album_Artista', "Músicas por Gênero":'Musica_Genero', "Gêneros por País":'Genero_Pais', "Duração":'Duracao'}
 list_variaveis_topn = {"Artista": 'Artista', "Música": 'Musica', "Álbum/Single": 'Album', "Gênero": 'Genero', "Artistas com músicas em posições similares": 'Artista_Posicao'}
@@ -376,7 +376,7 @@ with col2:
 
         with row_predicoes_col2:
             st.subheader('Probabilidades da música aparecer em {}'.format(max(anos)+1))
-            st.dataframe(core.get_probabilidades(df_probabilidades), hide_index=True, column_config={"Artista": "Artista", "Musica": "Música", "prob_aparicao": st.column_config.NumberColumn("Probabildiade de Aparecer", format="%.2f %%")})
+            st.dataframe(core.get_probabilidades(df_predicoes), hide_index=True, column_config={"Artista": "Artista", "Musica": "Música", "prob_aparecer": st.column_config.NumberColumn("Probabildiade de Aparecer", format="%.2f %%")})
 
     with tab_edicoes:
 
