@@ -325,6 +325,8 @@ def get_analise_edicao(df_data, medida, analise):
             df = df.groupby('Edicao')[index_name].median().reset_index(name=medida)
         case 'Máximo':
             df = df.groupby('Edicao')[index_name].max().reset_index(name=medida)
+        case 'Mínimo':
+            df = df.groupby('Edicao')[index_name].min().reset_index(name=medida)
         case default:
             df = df
 

@@ -316,6 +316,8 @@ with col2:
         row_anelisemusica_col1, row_anelisemusica_col2 = st.columns((1.5, 6.2), gap="small")
         with row_anelisemusica_col1:
             analisemusica_edicao_selecionada = st.selectbox("Escolha o aspecto", list(list_analises_edicao.keys()), key = 'analise_edicao')
+            if (list_analises_edicao[analisemusica_edicao_selecionada] == 'Duracao'):
+                medidas = medidas + ["Mínimo"]
             analisemusica_medida_selecionada = st.selectbox("Escolha a medida", medidas, key = 'medida_edicao')
         with row_anelisemusica_col2:
             plotar_grafico(ch.get_grafico_barra(core.get_analise_edicao(df_listagem_filtrada, analisemusica_medida_selecionada, list_analises_edicao[analisemusica_edicao_selecionada]),
