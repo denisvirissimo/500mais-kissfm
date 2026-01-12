@@ -94,7 +94,7 @@ st.set_page_config(layout="wide",
 configurar_css()
 
 if 'opt_pink_floyd' not in st.session_state:
-    st.session_state.opt_pink_floyd = False
+    st.session_state.opt_pink_floyd = True
 
 df_listagem = load_data(st.session_state.opt_pink_floyd)
 df_predicoes = load_predicoes()
