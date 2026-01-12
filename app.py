@@ -184,12 +184,12 @@ with col2:
     tab_geral, tab_edicao, tab_edicoes, tab_analises, tab_curiosidades, tab_predicoes = st.tabs(["Visão Geral", "Por Edição", "Todas as Edições", "Análises", "Curiosidades", "Predições"])
 
     with tab_geral:
-        st.subheader('Evolução de músicas distintas ao longo dos anos')
+        st.subheader('Evolução de músicas distintas ao longo das edições')
         plotar_grafico(ch.get_grafico_barra(core.get_acumulado_musicas_distintas(df_listagem_filtrada), "Anos", "Acumulado", "Edições", "Acumulado de Músicas distintas"))
 
         st.divider()
 
-        st.subheader('Evolução de gêneros musicais distintos ao longo dos anos')
+        st.subheader('Evolução de gêneros musicais distintos ao longo das edições')
         plotar_grafico(ch.get_grafico_barra(core.get_acumulado_generos_distintos(df_listagem_filtrada), "Anos", "Acumulado", "Edições", "Acumulado de Gêneros Musicais distintos"))
 
         st.divider()
@@ -423,7 +423,7 @@ with col2:
             row_infomusica_col8.metric(label='🏅 Pódios Consecutivos', value=info_musica.get_numero_podios_consecutivos())
 
             st.subheader('Histórico')
-            plotar_grafico(ch.get_grafico_linha(info_musica.get_posicoes(),'Ano', 'Posicao', 'Ano', 'Posição no ranking', '', reversed=True))
+            plotar_grafico(ch.get_grafico_linha(info_musica.get_posicoes(),'Edicao', 'Posicao', 'Edição', 'Posição no ranking', '', reversed=True))
 
         st.divider()
 

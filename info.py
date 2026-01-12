@@ -135,7 +135,7 @@ class InfoMusica(InfoBase):
         return np.mean(self.df.Posicao).round(0).astype(int)
 
     def get_posicoes(self):
-        return self.df.sort_values(by='Ano', ascending=True)
+        return self.df.sort_values(by='Edicao', ascending=True)
     
 class InfoArtista(InfoBase):
     
