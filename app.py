@@ -27,14 +27,14 @@ def configurar_css():
 )
 
 def plotar_grafico(fig):
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
 def plotar_mapa_calor(fig):
     config = {'scrollZoom': False,
       'modeBarButtonsToRemove': [
           'zoom', 'pan', 'select', 'zoomIn', 'zoomOut', 'autoScale', 'resetScale']}
 
-    st.plotly_chart(fig, use_container_width=True, config = config)
+    st.plotly_chart(fig, width="stretch", config = config)
 
 def plotar_timeline(edicao):
     items = json.loads(edicao.get_musicas())
@@ -205,15 +205,15 @@ with col2:
         with row_topn_col2:
             match list_variaveis_topn[variavel_topn_selecionada]:
                 case 'Artista':
-                    st.dataframe(data=core.get_artistas_top_n(df_listagem_filtrada, top_n), hide_index=True, use_container_width=True, height=400, column_config={"Artista":"Artista", "Total_Aparicoes": "Número Total de Aparições"})
+                    st.dataframe(data=core.get_artistas_top_n(df_listagem_filtrada, top_n), hide_index=True, width="stretch", height=400, column_config={"Artista":"Artista", "Total_Aparicoes": "Número Total de Aparições"})
                 case 'Musica':
-                    st.dataframe(data=core.get_musicas_top_n(df_listagem_filtrada, top_n), hide_index=True, use_container_width=True, height=400, column_config={"Musica":"Música", "Total_Aparicoes": "Número Total de Aparições"})
+                    st.dataframe(data=core.get_musicas_top_n(df_listagem_filtrada, top_n), hide_index=True, width="stretch", height=400, column_config={"Musica":"Música", "Total_Aparicoes": "Número Total de Aparições"})
                 case 'Album':
-                    st.dataframe(data=core.get_albuns_top_n(df_listagem_filtrada, top_n), hide_index=True, use_container_width=True, height=400, column_config={"Album_Single":"Álbum/Single", "Total_Aparicoes": "Número Total de Aparições"})
+                    st.dataframe(data=core.get_albuns_top_n(df_listagem_filtrada, top_n), hide_index=True, width="stretch", height=400, column_config={"Album_Single":"Álbum/Single", "Total_Aparicoes": "Número Total de Aparições"})
                 case 'Genero':
-                    st.dataframe(data=core.get_generos_top_n(df_listagem_filtrada, top_n), hide_index=True, use_container_width=True, height=400, column_config={"Genero":"Gênero", "Total_Aparicoes": "Número Total de Aparições"})
+                    st.dataframe(data=core.get_generos_top_n(df_listagem_filtrada, top_n), hide_index=True, width="stretch", height=400, column_config={"Genero":"Gênero", "Total_Aparicoes": "Número Total de Aparições"})
                 case 'Artista_Posicao':
-                    st.dataframe(data=core.get_artistas_posicoes_semelhantes_top_n(df_listagem_filtrada, top_n), hide_index=True, use_container_width=True, height=400, column_config={"Artista": "Artista", "Posicao_Semelhante": st.column_config.NumberColumn("Porcentagem de vezes em posições similares", format="percent")})
+                    st.dataframe(data=core.get_artistas_posicoes_semelhantes_top_n(df_listagem_filtrada, top_n), hide_index=True, width="stretch", height=400, column_config={"Artista": "Artista", "Posicao_Semelhante": st.column_config.NumberColumn("Porcentagem de vezes em posições similares", format="percent")})
                 case default:
                     st.write('Escolha uma opção')
 
@@ -242,7 +242,7 @@ with col2:
         row_posicaogenero, row_paises = st.columns((3.5, 3.5), gap="large")
         with row_posicaogenero:
             st.subheader('Melhor posição de cada gênero')
-            st.dataframe(data=core.get_melhor_posicao_genero(df_listagem_filtrada), hide_index=True, use_container_width=True, height=400, column_config={"Genero":"Gênero", "Posicao": "Melhor Posição", "Edicao": "Edição"})
+            st.dataframe(data=core.get_melhor_posicao_genero(df_listagem_filtrada), hide_index=True, width="stretch", height=400, column_config={"Genero":"Gênero", "Posicao": "Melhor Posição", "Edicao": "Edição"})
 
         with row_paises:
             st.subheader('Mapa de Países')
