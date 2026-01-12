@@ -376,7 +376,7 @@ with col2:
 
         with row_predicoes_col2:
             st.subheader('Probabilidades da música aparecer em {}'.format(max(anos)+1))
-            st.dataframe(core.get_probabilidades(df_predicoes), hide_index=True, column_config={"Artista": "Artista", "Musica": "Música", "prob_aparecer": st.column_config.NumberColumn("Probabildiade de Aparecer", format="%.2f %%")})
+            st.dataframe(core.get_probabilidades(df_predicoes), hide_index=True, column_config={"Artista": "Artista", "Musica": "Música", "prob_aparecer": st.column_config.NumberColumn("Probabilidade de Aparecer", format="%.2f %%")})
 
     with tab_edicoes:
 
@@ -418,7 +418,7 @@ with col2:
             st.text('')
             row_infomusica_col5, row_infomusica_col6, row_infomusica_col7, row_infomusica_col8= st.columns(4)
             row_infomusica_col5.metric(label="#️⃣ Número Aparições", value=info_musica.get_numero_aparicoes())
-            row_infomusica_col6.metric(label='🔥 Aparições Consecutivas', value=info_musica.get_numero_aparicoes_consecutivas())
+            row_infomusica_col6.metric(label='🔥 Recorde Edições Consecutivas', value=info_musica.get_numero_aparicoes_consecutivas())
             row_infomusica_col7.metric(label='🏅 Número Pódios', value=info_musica.get_numero_podios())
             row_infomusica_col8.metric(label='🏅 Pódios Consecutivos', value=info_musica.get_numero_podios_consecutivos())
 
@@ -452,7 +452,7 @@ with col2:
             st.text('')
             row_infoartista_col5, row_infoartista_col6, row_infoartista_col7, row_infoartista_col8= st.columns(4)
             row_infoartista_col5.metric(label="️🎵Média Músicas", value=locale.format_string("%.2f", info_artista.get_media_musicas_por_edicao(), grouping = True), delta="por edição", delta_color='off')
-            row_infoartista_col6.metric(label='🔥 Aparições Consecutivas', value=info_artista.get_numero_aparicoes_consecutivas())
+            row_infoartista_col6.metric(label='🔥 Recorde Edições Consecutivas', value=info_artista.get_numero_aparicoes_consecutivas())
             row_infoartista_col7.metric(label='🏅 Número Pódios', value=info_artista.get_numero_podios())
             row_infoartista_col8.metric(label='🏅 Pódios Consecutivos', value=info_artista.get_numero_podios_consecutivos())
 
