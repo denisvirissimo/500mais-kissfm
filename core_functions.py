@@ -375,15 +375,15 @@ def get_onehit_por_edicao(df_data):
 
 def get_dados_cumulativos(df_data, atributo):
     df_data = filtrar_inconsistencias(df_data)
-    df_data = (df_data.groupby(['Ano', atributo])
+    df_data = (df_data.groupby(['Edicao', atributo])
                   .size()
                   .reset_index(name='Count')
-                  .groupby(['Ano', atributo])['Count']
+                  .groupby(['Edicao', atributo])['Count']
                   .sum()
                   .groupby(level=atributo)
                   .cumsum()
                   .reset_index())
-    df_data = df_data.sort_values(by='Count', ascending=False).groupby('Ano').head(len(df_data))
+    df_data = df_data.sort_values(by='Count', ascending=False).groupby('Edicao').head(len(df_data))
 
     return df_data
 

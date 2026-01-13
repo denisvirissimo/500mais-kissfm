@@ -111,17 +111,16 @@ def get_analise_edicao_treemap(df_data, xdata, ydata, xlabel, ylabel):
 
     return fig
 
-def gerar_grafico_race(df_data, atributo, titulo):
-    df_values, df_ranks = bcr.prepare_long_data(df_data, index='Ano', columns=atributo, values='Count', steps_per_period=1)
+def gerar_grafico_race(df_data, xdata, ydata, legend, titulo):
+    df_values, df_ranks = bcr.prepare_long_data(df_data, index=xdata, columns=ydata, values=legend, steps_per_period=1)
     return bcr.bar_chart_race(df_values,
                               n_bars=10,
-                              steps_per_period=15,
+                              steps_per_period=18,
                               period_length=1000,
                               title = titulo,
-                              period_template='{x:.0f}',
                               bar_texttemplate='{x:.0f}',
                               tick_template='{x:.0f}',
-                              fixed_max=True,
+                              fixed_max=False,
                               filter_column_colors=True).data
 
 def get_grafico_slope(df_data, xlabel, xdata1, xdata2, ydata1, ydata2, legend1, legend2, title):

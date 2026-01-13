@@ -51,8 +51,8 @@ def plotar_timeline(edicao):
     timeline(items, height=400, additional_options=options)
 
 @st.cache_resource(show_spinner='Gerando gráfico de corrida...')
-def plotar_grafico_race(df_data, atributo, titulo):
-    html_data = ch.gerar_grafico_race(df_data, atributo, titulo)
+def plotar_grafico_race(df_data, xdata, ydata, legend, titulo):
+    html_data = ch.gerar_grafico_race(df_data, xdata, ydata, legend, titulo)
 
     start = html_data.find('base64,') + len('base64,')
     end = html_data.find('">')
@@ -467,9 +467,9 @@ with col2:
 
             st.subheader('')
             plotar_grafico_race(core.get_dados_cumulativos(load_data(True, False), 'Artista'),
-                              'Artista',
+                              'Edicao', 'Artista', 'Count',
                               'Top 10 Artistas com mais músicas nas edições')
 
             plotar_grafico_race(core. get_dados_cumulativos(load_data(True, False), 'Genero'),
-                              'Genero',
+                              'Edicao', 'Genero', 'Count',
                               'Top 10 Gêneros Musicais com mais músicas nas edições')
