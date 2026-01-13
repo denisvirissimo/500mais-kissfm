@@ -61,8 +61,8 @@ def plotar_grafico_race(df_data, atributo, titulo):
     st.video(video)
 
 @st.cache_data
-def load_data(agregar_pinkfloyd):
-    return core.load_data(agregar_pinkfloyd)
+def load_data(agregar_pinkfloyd, agregar_aovivo):
+    return core.load_data(agregar_pinkfloyd, agregar_aovivo)
 
 @st.cache_data
 def load_predicoes():
@@ -96,7 +96,10 @@ configurar_css()
 if 'opt_pink_floyd' not in st.session_state:
     st.session_state.opt_pink_floyd = True
 
-df_listagem = load_data(st.session_state.opt_pink_floyd)
+if 'opt_live' not in st.session_state:
+    st.session_state.opt_live = False
+
+df_listagem = load_data(st.session_state.opt_pink_floyd, st.session_state.opt_live)
 df_predicoes = load_predicoes()
 
 list_analises_edicao = {"Músicas por Artista":'Musica_Artista', "Álbuns por Artista":'Album_Artista', "Músicas por Gênero":'Musica_Genero', "Gêneros por País":'Genero_Pais', "Duração":'Duracao'}
@@ -128,6 +131,8 @@ st.sidebar.caption('Estes filtros se aplicam somente às abas Visão Geral e An�
 st.sidebar.subheader('Opções')
 
 st.sidebar.toggle('Agregar múltiplas versões de Another Brick in the Wall', key='opt_pink_floyd', help='[Clique aqui](https://github.com/denisvirissimo/500mais-kissfm#o-caso-de-another-brick-in-the-wall) para entender.')
+
+st.sidebar.toggle('Agregar músicas ao vivo', key='opt_live', help='Considerar músicas de estúdio e ao vivo como sendo as mesmas.')
 
 col1, col2, col3 = st.columns((.2, 7.1, .2))
 
@@ -461,10 +466,10 @@ with col2:
         with row_videos:
 
             st.subheader('')
-            plotar_grafico_race(core.get_dados_cumulativos(load_data(False), 'Artista'),
+            plotar_grafico_race(core.get_dados_cumulativos(load_data(True, False), 'Artista'),
                               'Artista',
                               'Top 10 Artistas com mais músicas nas edições')
 
-            plotar_grafico_race(core. get_dados_cumulativos(load_data(False), 'Genero'),
+            plotar_grafico_race(core. get_dados_cumulativos(load_data(True, False), 'Genero'),
                               'Genero',
                               'Top 10 Gêneros Musicais com mais músicas nas edições')

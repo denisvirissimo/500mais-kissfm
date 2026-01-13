@@ -9,7 +9,7 @@ dataset_file = './data/500+.csv'
 predictions_file = './data/predicao_proximo_ano.csv'
 
 #Inicialização
-def load_data(agregar_pinkfloyd):
+def load_data(agregar_pinkfloyd, agregar_aovivo):
     df_data = pd.read_csv(dataset_file)
     df_data['Id'] = range(1, len(df_data) + 1)
     df_data['Edicao'] = df_data.Ano.astype(str).str[-2:] + "-" + (df_data.Ano +1).astype(str).str[-2:]
@@ -19,6 +19,9 @@ def load_data(agregar_pinkfloyd):
     if (agregar_pinkfloyd):
         df_data.loc[df_data['Musica'].str.contains('Another Brick', na=False), 'Duracao'] = df_data[df_data["Musica"] == "Another Brick in the Wall"].head(1).Duracao
         df_data.loc[df_data['Musica'].str.contains('Another Brick', na=False), 'Musica'] = 'Another Brick in the Wall'
+
+    if (agregar_aovivo):
+        df_data.loc[df_data['Observacao'].str.contains('ao vivo', na=False), 'Observacao'] = None
 
     df_data['Duracao'] = df_data.loc[:,'Duracao'].fillna(value=0)
     df_data['Duracao_Formatada'] = df_data.apply(lambda row: time.strftime("%M:%S", time.gmtime(row['Duracao'])), axis=1)
