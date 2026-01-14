@@ -140,6 +140,7 @@ class InfoMusica(InfoBase):
 class InfoArtista(InfoBase):
     
     def __init__(self, df_data, artista):
+        self.total_edicoes = np.unique(df_data.Edicao).size
         self.df = df_data.loc[(df_data['Artista'] == artista)]
     
     def get_total_musicas(self):
@@ -149,7 +150,7 @@ class InfoArtista(InfoBase):
         return np.size(self.df['Edicao'].drop_duplicates())
     
     def get_media_musicas_por_edicao(self):
-        return (self.get_total_musicas()/self.get_total_edicoes())
+        return (self.get_total_musicas()/self.total_edicoes)
     
     def get_numero_aparicoes_consecutivas(self):
         return self._contar_consecutivos(self.df['Ano'].drop_duplicates())
