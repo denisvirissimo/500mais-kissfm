@@ -156,6 +156,9 @@ class InfoArtista(InfoBase):
     
     def get_numero_podios(self):
         return np.size(self._listar_podios(self.df)['Artista'])
+    
+    def get_aparicoes(self):
+        return self.df.sort_values(by='Edicao', ascending=True).groupby('Edicao').size().reset_index(name='Count')
 
 class InfoCuriosidade:
 

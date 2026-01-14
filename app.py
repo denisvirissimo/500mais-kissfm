@@ -463,6 +463,9 @@ with col2:
             row_infoartista_col7.metric(label='🏅 Número Pódios', value=info_artista.get_numero_podios())
             row_infoartista_col8.metric(label='🏅 Pódios Consecutivos', value=info_artista.get_numero_podios_consecutivos())
 
+            st.subheader('Histórico')
+            plotar_grafico(ch.get_grafico_barra(info_artista.get_aparicoes(),'Edicao', 'Count', 'Edição', 'Quantidade de músicas'))
+
         with row_videos:
 
             st.subheader('')
