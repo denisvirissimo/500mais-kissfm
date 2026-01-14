@@ -313,7 +313,7 @@ with col2:
             st.divider()
 
         st.subheader('Mapa de Gêneros Músicais')
-        plotar_grafico(ch.get_analise_edicao_treemap(info_edicao.get_lista_generos(), 'Genero', 'Quantidade', 'Gênero', 'Quantidade de Músicas'))
+        plotar_grafico(ch.get_analise_edicao_treemap(info_edicao.get_lista_generos(), ['Genero', 'Artista', 'Musica'], 'Quantidade'))
 
     with tab_analises:
         st.subheader('Análises por edição')

@@ -94,7 +94,7 @@ class InfoEdicao:
         return self.df.groupby(['Edicao', 'Pais']).size().reset_index(name='Quantidade')
 
     def get_lista_generos(self):
-        return self.df.groupby(['Edicao', 'Genero']).size().reset_index(name='Quantidade')
+        return self.df.groupby(['Genero', 'Artista', 'Musica']).size().reset_index(name='Quantidade')
 
     def get_musicas(self):
         df = self.df.sort_values(by='Data_Lancamento_Album')

@@ -104,11 +104,18 @@ def get_mapa_calor(df_data, xhover, yhover, zhover, xlabel, ylabel):
 
     return fig
 
-def get_analise_edicao_treemap(df_data, xdata, ydata, xlabel, ylabel):
-    fig = px.treemap(df_data, path=[px.Constant('Todos'), xdata], values=ydata, color=xdata, hover_data=[xdata])
-    fig.update_layout(margin = dict(t=50, l=25, r=25, b=25))
-    fig.update_traces(hovertemplate=xlabel + ": %{label}<br>" + ylabel + ": %{value}")
+def get_analise_edicao_treemap(df_data, xdata, ydata):
+    path = [px.Constant('Todos')]
+    path.extend(xdata)
+    fig = px.treemap(df_data, path=path, values=ydata)
 
+    fig.update_traces(marker=dict(cornerradius=5),
+                    texttemplate="<b>%{label}</b><br>%{value}",
+                    textposition="middle center",
+                    hovertemplate=None,
+                    hoverinfo="skip",
+                    maxdepth=2)
+    
     return fig
 
 def gerar_grafico_race(df_data, xdata, ydata, legend, titulo):
