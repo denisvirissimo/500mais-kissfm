@@ -12,7 +12,7 @@ from streamlit_timeline import timeline
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 logo_file = './resources/logo.png'
 icon_file = './resources/favicon.ico'
-versao = '1.4.0'
+versao = '1.4.1'
 
 def configurar_css():
     st.markdown(
@@ -27,14 +27,14 @@ def configurar_css():
 )
 
 def plotar_grafico(fig):
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
 def plotar_mapa_calor(fig):
     config = {'scrollZoom': False,
       'modeBarButtonsToRemove': [
           'zoom', 'pan', 'select', 'zoomIn', 'zoomOut', 'autoScale', 'resetScale']}
 
-    st.plotly_chart(fig, use_container_width=True, config = config)
+    st.plotly_chart(fig, width="stretch", config = config)
 
 def plotar_timeline(edicao):
     items = json.loads(edicao.get_musicas())
@@ -51,8 +51,8 @@ def plotar_timeline(edicao):
     timeline(items, height=400, additional_options=options)
 
 @st.cache_resource(show_spinner='Gerando gráfico de corrida...')
-def plotar_grafico_race(df_data, atributo, titulo):
-    html_data = ch.gerar_grafico_race(df_data, atributo, titulo)
+def plotar_grafico_race(df_data, xdata, ydata, legend, titulo):
+    html_data = ch.gerar_grafico_race(df_data, xdata, ydata, legend, titulo)
 
     start = html_data.find('base64,') + len('base64,')
     end = html_data.find('">')
@@ -61,8 +61,8 @@ def plotar_grafico_race(df_data, atributo, titulo):
     st.video(video)
 
 @st.cache_data
-def load_data(agregar_pinkfloyd):
-    return core.load_data(agregar_pinkfloyd)
+def load_data(agregar_pinkfloyd, agregar_aovivo):
+    return core.load_data(agregar_pinkfloyd, agregar_aovivo)
 
 @st.cache_data
 def load_predicoes():
@@ -94,9 +94,12 @@ st.set_page_config(layout="wide",
 configurar_css()
 
 if 'opt_pink_floyd' not in st.session_state:
-    st.session_state.opt_pink_floyd = False
+    st.session_state.opt_pink_floyd = True
 
-df_listagem = load_data(st.session_state.opt_pink_floyd)
+if 'opt_live' not in st.session_state:
+    st.session_state.opt_live = False
+
+df_listagem = load_data(st.session_state.opt_pink_floyd, st.session_state.opt_live)
 df_predicoes = load_predicoes()
 
 list_analises_edicao = {"Músicas por Artista":'Musica_Artista', "Álbuns por Artista":'Album_Artista', "Músicas por Gênero":'Musica_Genero', "Gêneros por País":'Genero_Pais', "Duração":'Duracao'}
@@ -128,6 +131,8 @@ st.sidebar.caption('Estes filtros se aplicam somente às abas Visão Geral e An�
 st.sidebar.subheader('Opções')
 
 st.sidebar.toggle('Agregar múltiplas versões de Another Brick in the Wall', key='opt_pink_floyd', help='[Clique aqui](https://github.com/denisvirissimo/500mais-kissfm#o-caso-de-another-brick-in-the-wall) para entender.')
+
+st.sidebar.toggle('Agregar músicas ao vivo', key='opt_live', help='Considerar músicas de estúdio e ao vivo como sendo as mesmas.')
 
 col1, col2, col3 = st.columns((.2, 7.1, .2))
 
@@ -184,38 +189,41 @@ with col2:
     tab_geral, tab_edicao, tab_edicoes, tab_analises, tab_curiosidades, tab_predicoes = st.tabs(["Visão Geral", "Por Edição", "Todas as Edições", "Análises", "Curiosidades", "Predições"])
 
     with tab_geral:
-        st.subheader('Evolução de músicas distintas ao longo dos anos')
+        st.subheader('Evolução de músicas distintas ao longo das edições')
         plotar_grafico(ch.get_grafico_barra(core.get_acumulado_musicas_distintas(df_listagem_filtrada), "Anos", "Acumulado", "Edições", "Acumulado de Músicas distintas"))
 
         st.divider()
 
-        st.subheader('Evolução de gêneros musicais distintos ao longo dos anos')
+        st.subheader('Evolução de gêneros musicais distintos ao longo das edições')
         plotar_grafico(ch.get_grafico_barra(core.get_acumulado_generos_distintos(df_listagem_filtrada), "Anos", "Acumulado", "Edições", "Acumulado de Gêneros Musicais distintos"))
 
         st.divider()
 
         st.subheader('Artistas, Músicas, Álbuns e Gêneros no Topo')
 
-        row_topn_col1, row_topn_col2 = st.columns((2, 5), gap="large")
-        with row_topn_col1:
+        row_topn_col, row_recencia = st.columns((4, 4), gap="large")
+        with row_topn_col:
+            st.subheader('Artistas, Músicas, Álbuns e Gêneros no Topo')
             top_n = st.slider('Qual Top N você deseja visualizar?', 1, 50, 3)
             variavel_topn_selecionada = st.selectbox ("Escolha a variável para visualizar no Top", list(list_variaveis_topn.keys()), key = 'variavel_topn')
             if (list_variaveis_topn[variavel_topn_selecionada] == 'Artista_Posicao'):
                 st.caption('Considera-se música em posição similar aquela com uma variação de até 5 posições (para mais ou para menos)')
-        with row_topn_col2:
             match list_variaveis_topn[variavel_topn_selecionada]:
                 case 'Artista':
-                    st.dataframe(data=core.get_artistas_top_n(df_listagem_filtrada, top_n), hide_index=True, use_container_width=True, height=400, column_config={"Artista":"Artista", "Total_Aparicoes": "Número Total de Aparições"})
+                    st.dataframe(data=core.get_artistas_top_n(df_listagem_filtrada, top_n), hide_index=True, width="stretch", height=400, column_config={"Artista":"Artista", "Total_Aparicoes": "Número Total de Aparições"})
                 case 'Musica':
-                    st.dataframe(data=core.get_musicas_top_n(df_listagem_filtrada, top_n), hide_index=True, use_container_width=True, height=400, column_config={"Musica":"Música", "Total_Aparicoes": "Número Total de Aparições"})
+                    st.dataframe(data=core.get_musicas_top_n(df_listagem_filtrada, top_n), hide_index=True, width="stretch", height=400, column_config={"Musica":"Música", "Total_Aparicoes": "Número Total de Aparições"})
                 case 'Album':
-                    st.dataframe(data=core.get_albuns_top_n(df_listagem_filtrada, top_n), hide_index=True, use_container_width=True, height=400, column_config={"Album_Single":"Álbum/Single", "Total_Aparicoes": "Número Total de Aparições"})
+                    st.dataframe(data=core.get_albuns_top_n(df_listagem_filtrada, top_n), hide_index=True, width="stretch", height=400, column_config={"Album_Single":"Álbum/Single", "Total_Aparicoes": "Número Total de Aparições"})
                 case 'Genero':
-                    st.dataframe(data=core.get_generos_top_n(df_listagem_filtrada, top_n), hide_index=True, use_container_width=True, height=400, column_config={"Genero":"Gênero", "Total_Aparicoes": "Número Total de Aparições"})
+                    st.dataframe(data=core.get_generos_top_n(df_listagem_filtrada, top_n), hide_index=True, width="stretch", height=400, column_config={"Genero":"Gênero", "Total_Aparicoes": "Número Total de Aparições"})
                 case 'Artista_Posicao':
-                    st.dataframe(data=core.get_artistas_posicoes_semelhantes_top_n(df_listagem_filtrada, top_n), hide_index=True, use_container_width=True, height=400, column_config={"Artista": "Artista", "Posicao_Semelhante": st.column_config.NumberColumn("Porcentagem de vezes em posições similares", format="percent")})
+                    st.dataframe(data=core.get_artistas_posicoes_semelhantes_top_n(df_listagem_filtrada, top_n), hide_index=True, width="stretch", height=400, column_config={"Artista": "Artista", "Posicao_Semelhante": st.column_config.NumberColumn("Porcentagem de vezes em posições similares", format="percent")})
                 case default:
                     st.write('Escolha uma opção')
+        with row_recencia:
+            st.subheader('Última aparição das músicas')
+            st.dataframe(data=core.get_ultima_aparicao(df_listagem_filtrada), hide_index=True, width="stretch", height=570, column_config={"Artista":"Artista", "Musica":"Música", "Edicao": "Última Edição"})
 
         st.divider()
 
@@ -242,7 +250,7 @@ with col2:
         row_posicaogenero, row_paises = st.columns((3.5, 3.5), gap="large")
         with row_posicaogenero:
             st.subheader('Melhor posição de cada gênero')
-            st.dataframe(data=core.get_melhor_posicao_genero(df_listagem_filtrada), hide_index=True, use_container_width=True, height=400, column_config={"Genero":"Gênero", "Posicao": "Melhor Posição", "Edicao": "Edição"})
+            st.dataframe(data=core.get_melhor_posicao_genero(df_listagem_filtrada), hide_index=True, width="stretch", height=400, column_config={"Genero":"Gênero", "Posicao": "Melhor Posição", "Edicao": "Edição"})
 
         with row_paises:
             st.subheader('Mapa de Países')
@@ -308,7 +316,7 @@ with col2:
             st.divider()
 
         st.subheader('Mapa de Gêneros Músicais')
-        plotar_grafico(ch.get_analise_edicao_treemap(info_edicao.get_lista_generos(), 'Genero', 'Quantidade', 'Gênero', 'Quantidade de Músicas'))
+        plotar_grafico(ch.get_analise_edicao_treemap(info_edicao.get_lista_generos(), ['Genero', 'Artista', 'Musica'], 'Quantidade'))
 
     with tab_analises:
         st.subheader('Análises por edição')
@@ -316,6 +324,8 @@ with col2:
         row_anelisemusica_col1, row_anelisemusica_col2 = st.columns((1.5, 6.2), gap="small")
         with row_anelisemusica_col1:
             analisemusica_edicao_selecionada = st.selectbox("Escolha o aspecto", list(list_analises_edicao.keys()), key = 'analise_edicao')
+            if (list_analises_edicao[analisemusica_edicao_selecionada] == 'Duracao'):
+                medidas = medidas + ["Mínimo"]
             analisemusica_medida_selecionada = st.selectbox("Escolha a medida", medidas, key = 'medida_edicao')
         with row_anelisemusica_col2:
             plotar_grafico(ch.get_grafico_barra(core.get_analise_edicao(df_listagem_filtrada, analisemusica_medida_selecionada, list_analises_edicao[analisemusica_edicao_selecionada]),
@@ -376,7 +386,7 @@ with col2:
 
         with row_predicoes_col2:
             st.subheader('Probabilidades da música aparecer em {}'.format(max(anos)+1))
-            st.dataframe(core.get_probabilidades(df_predicoes), hide_index=True, column_config={"Artista": "Artista", "Musica": "Música", "prob_aparecer": st.column_config.NumberColumn("Probabildiade de Aparecer", format="%.2f %%")})
+            st.dataframe(core.get_probabilidades(df_predicoes), hide_index=True, column_config={"Artista": "Artista", "Musica": "Música", "prob_aparecer": st.column_config.NumberColumn("Probabilidade de Aparecer", format="%.2f %%")})
 
     with tab_edicoes:
 
@@ -418,12 +428,12 @@ with col2:
             st.text('')
             row_infomusica_col5, row_infomusica_col6, row_infomusica_col7, row_infomusica_col8= st.columns(4)
             row_infomusica_col5.metric(label="#️⃣ Número Aparições", value=info_musica.get_numero_aparicoes())
-            row_infomusica_col6.metric(label='🔥 Aparições Consecutivas', value=info_musica.get_numero_aparicoes_consecutivas())
+            row_infomusica_col6.metric(label='🔥 Recorde Edições Consecutivas', value=info_musica.get_numero_aparicoes_consecutivas())
             row_infomusica_col7.metric(label='🏅 Número Pódios', value=info_musica.get_numero_podios())
             row_infomusica_col8.metric(label='🏅 Pódios Consecutivos', value=info_musica.get_numero_podios_consecutivos())
 
             st.subheader('Histórico')
-            plotar_grafico(ch.get_grafico_linha(info_musica.get_posicoes(),'Ano', 'Posicao', 'Ano', 'Posição no ranking', '', reversed=True))
+            plotar_grafico(ch.get_grafico_linha(info_musica.get_posicoes(),'Edicao', 'Posicao', 'Edição', 'Posição no ranking', '', reversed=True))
 
         st.divider()
 
@@ -452,17 +462,20 @@ with col2:
             st.text('')
             row_infoartista_col5, row_infoartista_col6, row_infoartista_col7, row_infoartista_col8= st.columns(4)
             row_infoartista_col5.metric(label="️🎵Média Músicas", value=locale.format_string("%.2f", info_artista.get_media_musicas_por_edicao(), grouping = True), delta="por edição", delta_color='off')
-            row_infoartista_col6.metric(label='🔥 Aparições Consecutivas', value=info_artista.get_numero_aparicoes_consecutivas())
+            row_infoartista_col6.metric(label='🔥 Recorde Edições Consecutivas', value=info_artista.get_numero_aparicoes_consecutivas())
             row_infoartista_col7.metric(label='🏅 Número Pódios', value=info_artista.get_numero_podios())
             row_infoartista_col8.metric(label='🏅 Pódios Consecutivos', value=info_artista.get_numero_podios_consecutivos())
+
+            st.subheader('Histórico')
+            plotar_grafico(ch.get_grafico_barra(info_artista.get_aparicoes(),'Edicao', 'Count', 'Edição', 'Quantidade de músicas'))
 
         with row_videos:
 
             st.subheader('')
-            plotar_grafico_race(core.get_dados_cumulativos(load_data(False), 'Artista'),
-                              'Artista',
+            plotar_grafico_race(core.get_dados_cumulativos(load_data(True, False), 'Artista'),
+                              'Edicao', 'Artista', 'Count',
                               'Top 10 Artistas com mais músicas nas edições')
 
-            plotar_grafico_race(core. get_dados_cumulativos(load_data(False), 'Genero'),
-                              'Genero',
+            plotar_grafico_race(core. get_dados_cumulativos(load_data(True, False), 'Genero'),
+                              'Edicao', 'Genero', 'Count',
                               'Top 10 Gêneros Musicais com mais músicas nas edições')

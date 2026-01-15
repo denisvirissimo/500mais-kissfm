@@ -104,24 +104,30 @@ def get_mapa_calor(df_data, xhover, yhover, zhover, xlabel, ylabel):
 
     return fig
 
-def get_analise_edicao_treemap(df_data, xdata, ydata, xlabel, ylabel):
-    fig = px.treemap(df_data, path=[px.Constant('Todos'), xdata], values=ydata, color=xdata, hover_data=[xdata])
-    fig.update_layout(margin = dict(t=50, l=25, r=25, b=25))
-    fig.update_traces(hovertemplate=xlabel + ": %{label}<br>" + ylabel + ": %{value}")
+def get_analise_edicao_treemap(df_data, xdata, ydata):
+    path = [px.Constant('Todos')]
+    path.extend(xdata)
+    fig = px.treemap(df_data, path=path, values=ydata)
 
+    fig.update_traces(marker=dict(cornerradius=5),
+                    texttemplate="<b>%{label}</b><br>%{value}",
+                    textposition="middle center",
+                    hovertemplate=None,
+                    hoverinfo="skip",
+                    maxdepth=2)
+    
     return fig
 
-def gerar_grafico_race(df_data, atributo, titulo):
-    df_values, df_ranks = bcr.prepare_long_data(df_data, index='Ano', columns=atributo, values='Count', steps_per_period=1)
+def gerar_grafico_race(df_data, xdata, ydata, legend, titulo):
+    df_values, df_ranks = bcr.prepare_long_data(df_data, index=xdata, columns=ydata, values=legend, steps_per_period=1)
     return bcr.bar_chart_race(df_values,
                               n_bars=10,
-                              steps_per_period=15,
+                              steps_per_period=18,
                               period_length=1000,
                               title = titulo,
-                              period_template='{x:.0f}',
                               bar_texttemplate='{x:.0f}',
                               tick_template='{x:.0f}',
-                              fixed_max=True,
+                              fixed_max=False,
                               filter_column_colors=True).data
 
 def get_grafico_slope(df_data, xlabel, xdata1, xdata2, ydata1, ydata2, legend1, legend2, title):

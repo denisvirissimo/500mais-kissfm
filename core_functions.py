@@ -9,17 +9,22 @@ dataset_file = './data/500+.csv'
 predictions_file = './data/predicao_proximo_ano.csv'
 
 #Inicialização
-def load_data(agregar_pinkfloyd):
+def load_data(agregar_pinkfloyd, agregar_aovivo):
     df_data = pd.read_csv(dataset_file)
     df_data['Id'] = range(1, len(df_data) + 1)
     df_data['Edicao'] = df_data.Ano.astype(str).str[-2:] + "-" + (df_data.Ano +1).astype(str).str[-2:]
     df_data['Data_Lancamento_Album'] = pd.to_datetime(df_data['Data_Lancamento_Album'])
     df_data['Decada_Lancamento_Album'] = df_data['Data_Lancamento_Album'].dt.year.apply(get_decada)
+
+    if (agregar_pinkfloyd):
+        df_data.loc[df_data['Musica'].str.contains('Another Brick', na=False), 'Duracao'] = df_data[df_data["Musica"] == "Another Brick in the Wall"].head(1).Duracao
+        df_data.loc[df_data['Musica'].str.contains('Another Brick', na=False), 'Musica'] = 'Another Brick in the Wall'
+
+    if (agregar_aovivo):
+        df_data.loc[df_data['Observacao'].str.contains('ao vivo', na=False), 'Observacao'] = None
+
     df_data['Duracao'] = df_data.loc[:,'Duracao'].fillna(value=0)
     df_data['Duracao_Formatada'] = df_data.apply(lambda row: time.strftime("%M:%S", time.gmtime(row['Duracao'])), axis=1)
-    if (agregar_pinkfloyd):
-        df_data.loc[df_data['Musica'].str.contains('Another Brick', na=False), 'Musica'] = 'Another Brick in the Wall'
-        df_data.loc[df_data['Musica'].str.contains('Another Brick', na=False), 'Duracao'] = 508
 
     return df_data
 
@@ -325,6 +330,8 @@ def get_analise_edicao(df_data, medida, analise):
             df = df.groupby('Edicao')[index_name].median().reset_index(name=medida)
         case 'Máximo':
             df = df.groupby('Edicao')[index_name].max().reset_index(name=medida)
+        case 'Mínimo':
+            df = df.groupby('Edicao')[index_name].min().reset_index(name=medida)
         case default:
             df = df
 
@@ -368,15 +375,15 @@ def get_onehit_por_edicao(df_data):
 
 def get_dados_cumulativos(df_data, atributo):
     df_data = filtrar_inconsistencias(df_data)
-    df_data = (df_data.groupby(['Ano', atributo])
+    df_data = (df_data.groupby(['Edicao', atributo])
                   .size()
                   .reset_index(name='Count')
-                  .groupby(['Ano', atributo])['Count']
+                  .groupby(['Edicao', atributo])['Count']
                   .sum()
                   .groupby(level=atributo)
                   .cumsum()
                   .reset_index())
-    df_data = df_data.sort_values(by='Count', ascending=False).groupby('Ano').head(len(df_data))
+    df_data = df_data.sort_values(by='Count', ascending=False).groupby('Edicao').head(len(df_data))
 
     return df_data
 
@@ -406,6 +413,15 @@ def get_variacao_entre_anos(df, ano_inicial, ano_final, quantidade_musicas, qued
         top_n['Posicao_Atual'] = top_n[ano_final] *1.5
 
     return top_n
+
+def get_ultima_aparicao(df_data):
+    df = df_data.copy()
+    df = filtrar_inconsistencias(df)
+    df['Observacao'] = df['Observacao'].fillna('dummy')
+    df = df.groupby(['Artista', 'Musica', 'Observacao'], as_index=False)['Edicao'].max()
+
+
+    return df[['Artista', 'Musica', 'Edicao']].sort_values(by=['Edicao', 'Artista', 'Musica'], ascending=[False, True, True])       
 
 def get_predicoes(df):
     df = df[["posicao_ranking", "Artista", "Musica"]].head(500)
