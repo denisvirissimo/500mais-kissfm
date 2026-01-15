@@ -201,13 +201,13 @@ with col2:
 
         st.subheader('Artistas, Músicas, Álbuns e Gêneros no Topo')
 
-        row_topn_col1, row_topn_col2 = st.columns((2, 5), gap="large")
-        with row_topn_col1:
+        row_topn_col, row_recencia = st.columns((4, 4), gap="large")
+        with row_topn_col:
+            st.subheader('Artistas, Músicas, Álbuns e Gêneros no Topo')
             top_n = st.slider('Qual Top N você deseja visualizar?', 1, 50, 3)
             variavel_topn_selecionada = st.selectbox ("Escolha a variável para visualizar no Top", list(list_variaveis_topn.keys()), key = 'variavel_topn')
             if (list_variaveis_topn[variavel_topn_selecionada] == 'Artista_Posicao'):
                 st.caption('Considera-se música em posição similar aquela com uma variação de até 5 posições (para mais ou para menos)')
-        with row_topn_col2:
             match list_variaveis_topn[variavel_topn_selecionada]:
                 case 'Artista':
                     st.dataframe(data=core.get_artistas_top_n(df_listagem_filtrada, top_n), hide_index=True, width="stretch", height=400, column_config={"Artista":"Artista", "Total_Aparicoes": "Número Total de Aparições"})
@@ -221,6 +221,9 @@ with col2:
                     st.dataframe(data=core.get_artistas_posicoes_semelhantes_top_n(df_listagem_filtrada, top_n), hide_index=True, width="stretch", height=400, column_config={"Artista": "Artista", "Posicao_Semelhante": st.column_config.NumberColumn("Porcentagem de vezes em posições similares", format="percent")})
                 case default:
                     st.write('Escolha uma opção')
+        with row_recencia:
+            st.subheader('Última aparição das músicas')
+            st.dataframe(data=core.get_ultima_aparicao(df_listagem_filtrada), hide_index=True, width="stretch", height=570, column_config={"Artista":"Artista", "Musica":"Música", "Edicao": "Última Edição"})
 
         st.divider()
 

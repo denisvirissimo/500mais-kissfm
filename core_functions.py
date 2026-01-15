@@ -414,6 +414,15 @@ def get_variacao_entre_anos(df, ano_inicial, ano_final, quantidade_musicas, qued
 
     return top_n
 
+def get_ultima_aparicao(df_data):
+    df = df_data.copy()
+    df = filtrar_inconsistencias(df)
+    df['Observacao'] = df['Observacao'].fillna('dummy')
+    df = df.groupby(['Artista', 'Musica', 'Observacao'], as_index=False)['Edicao'].max()
+
+
+    return df[['Artista', 'Musica', 'Edicao']].sort_values(by=['Edicao', 'Artista', 'Musica'], ascending=[False, True, True])       
+
 def get_predicoes(df):
     df = df[["posicao_ranking", "Artista", "Musica"]].head(500)
     return df
