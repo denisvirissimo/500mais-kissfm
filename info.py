@@ -142,6 +142,7 @@ class InfoArtista(InfoBase):
     def __init__(self, df_data, artista):
         self.total_edicoes = np.unique(df_data.Edicao).size
         self.df = df_data.loc[(df_data['Artista'] == artista)]
+        self.rawdf = df_data
     
     def get_total_musicas(self):
         return np.size(self.df.Id)
@@ -159,7 +160,13 @@ class InfoArtista(InfoBase):
         return np.size(self._listar_podios(self.df)['Artista'])
     
     def get_aparicoes(self):
-        return self.df.sort_values(by='Edicao', ascending=True).groupby('Edicao').size().reset_index(name='Count')
+        #return self.df.sort_values(by='Edicao', ascending=True).groupby('Edicao').size().reset_index(name='Count')
+        return (self.rawdf[self.rawdf['Artista'] == self.df.Artista.values[0]]
+                .groupby('Edicao')
+                .size()
+                .reindex(self.rawdf['Edicao'].unique(), fill_value=0)
+                .reset_index(name='Count')
+                .sort_values(by='Edicao', ascending=True))
 
 class InfoCuriosidade:
 
