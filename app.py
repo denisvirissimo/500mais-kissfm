@@ -12,7 +12,7 @@ from streamlit_timeline import timeline
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 logo_file = './resources/logo.png'
 icon_file = './resources/favicon.ico'
-versao = '1.4.0'
+versao = '1.4.1'
 
 def configurar_css():
     st.markdown(
