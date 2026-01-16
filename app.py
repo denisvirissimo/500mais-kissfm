@@ -382,13 +382,13 @@ with col2:
 
     with tab_predicoes:
         row_predicoes_col1, row_predicoes_col2 = st.columns((3, 3.5), gap="small")
-
+        proxima_edicao = max(anos).astype(str)[-2:] + "-" + (max(anos)+1).astype(str)[-2:]
         with row_predicoes_col1:
-            st.subheader('Predições das 500+ para {}'.format(max(anos)+1))
+            st.subheader('Predições das 500+ para a edição {}'.format(proxima_edicao))
             st.dataframe(core.get_predicoes(df_predicoes), hide_index=True, column_config={"posicao_ranking": st.column_config.Column("Posição", width=1), "Artista": "Artista", "Musica": "Música"})
 
         with row_predicoes_col2:
-            st.subheader('Probabilidades da música aparecer em {}'.format(max(anos)+1))
+            st.subheader('Probabilidades da música aparecer na edição {}'.format(proxima_edicao))
             st.dataframe(core.get_probabilidades(df_predicoes), hide_index=True, column_config={"Artista": "Artista", "Musica": "Música", "prob_aparecer": st.column_config.NumberColumn("Probabilidade de Aparecer", format="%.2f %%")})
 
     with tab_edicoes:
