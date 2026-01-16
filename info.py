@@ -33,7 +33,7 @@ class InfoBase:
 class InfoEdicao:
 
     def __init__(self, df_data, ano):
-        self.df = df_data[df_data['Ano'] == ano]
+        self.df = df_data[df_data['Ano'] == ano].copy()
 
     def get_musica_posicao(self, posicao):
         df_filtrado = self.df[self.df['Posicao'] == posicao]
@@ -114,6 +114,14 @@ class InfoEdicao:
         return [(self.df.Data_Lancamento_Album.min() + pd.DateOffset(years=-3)).strftime('%Y-%m-%dT%H:%M:%SZ'),
                 (self.df.Data_Lancamento_Album.max() + pd.DateOffset(years=3)).strftime('%Y-%m-%dT%H:%M:%SZ')]
 
+    def get_duracoes(self):
+        faixas = [0, 120, 180, 240, 300, 360, float('inf')]
+        legendas = ['<2 min', '2-3 min', '3-4 min', '4-5 min', '5-6 min', '>6 min']
+
+        self.df['FaixaDuracao'] = pd.cut(self.df['Duracao'], bins=faixas, labels=legendas, right=False)
+
+        return self.df.groupby('FaixaDuracao', observed=True).size().reset_index(name='Count')
+
 class InfoMusica(InfoBase):
 
     def __init__(self, df_data, id_musica):
@@ -136,6 +144,9 @@ class InfoMusica(InfoBase):
 
     def get_posicoes(self):
         return self.df.sort_values(by='Edicao', ascending=True)
+
+    def get_video_id(self):
+        return self.df.YT_Id.values[0]
     
 class InfoArtista(InfoBase):
     

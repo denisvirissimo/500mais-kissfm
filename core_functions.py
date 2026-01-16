@@ -17,8 +17,8 @@ def load_data(agregar_pinkfloyd, agregar_aovivo):
     df_data['Decada_Lancamento_Album'] = df_data['Data_Lancamento_Album'].dt.year.apply(get_decada)
 
     if (agregar_pinkfloyd):
-        df_data.loc[df_data['Musica'].str.contains('Another Brick', na=False), 'Duracao'] = df_data[df_data["Musica"] == "Another Brick in the Wall"].head(1).Duracao
         df_data.loc[df_data['Musica'].str.contains('Another Brick', na=False), 'Musica'] = 'Another Brick in the Wall'
+        df_data.loc[df_data['Musica'].str.contains('Another Brick', na=False), 'Duracao'] = df_data[df_data["Musica"] == "Another Brick in the Wall"].tail(1).Duracao.values[0]
 
     if (agregar_aovivo):
         df_data.loc[df_data['Observacao'].str.contains('ao vivo', na=False), 'Observacao'] = None
