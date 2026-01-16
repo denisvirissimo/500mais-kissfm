@@ -315,6 +315,11 @@ with col2:
 
             st.divider()
 
+        st.subheader('Duração das músicas')
+        plotar_grafico(ch.get_grafico_linha(info_edicao.get_duracoes(), 'FaixaDuracao', 'Count', 'Duração', 'Quantidade de músicas', 'Quantidade'))
+
+        st.divider()
+
         st.subheader('Mapa de Gêneros Músicais')
         plotar_grafico(ch.get_analise_edicao_treemap(info_edicao.get_lista_generos(), ['Genero', 'Artista', 'Musica'], 'Quantidade'))
 
