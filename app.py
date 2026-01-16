@@ -314,7 +314,7 @@ with col2:
             st.divider()
 
         st.subheader('Duração das músicas')
-        plotar_grafico(ch.get_grafico_linha(info_edicao.get_duracoes(), 'FaixaDuracao', 'Count', 'Duração', 'Quantidade de músicas', 'Quantidade'))
+        plotar_grafico(ch.get_grafico_linha(info_edicao.get_duracoes(), 'FaixaDuracao', 'Count', 'Duração', 'Quantidade de músicas', 'Quantidade', smooth=True))
 
         st.divider()
 
