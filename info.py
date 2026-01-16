@@ -136,6 +136,9 @@ class InfoMusica(InfoBase):
 
     def get_posicoes(self):
         return self.df.sort_values(by='Edicao', ascending=True)
+
+    def get_video_id(self):
+        return self.df.YT_Id.values[0]
     
 class InfoArtista(InfoBase):
     

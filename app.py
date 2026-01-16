@@ -419,18 +419,22 @@ with col2:
             st.text('')
 
         if (musica_selecionada != None):
-            row_infomusica_col1, row_infomusica_col2, row_infomusica_col3, row_infomusica_col4 = st.columns(4)
             info_musica = InfoMusica(core.filtrar_inconsistencias(df_listagem), musica_selecionada)
-            row_infomusica_col1.metric(label="📈 Melhor Posição", value=str(info_musica.get_melhor_posicao()) + 'ª', delta=info_musica.get_edicao_melhor_posicao(), delta_color='off')
-            row_infomusica_col2.metric(label="📉 Pior Posição", value=str(info_musica.get_pior_posicao()) + "ª", delta=info_musica.get_edicao_pior_posicao(), delta_color='off')
-            row_infomusica_col3.metric(label="📊 Posição Média", value=str(info_musica.get_posicao_media()) + "ª")
-            row_infomusica_col4.metric(label="🗓️ Década", value=info_musica.get_decada())
-            st.text('')
-            row_infomusica_col5, row_infomusica_col6, row_infomusica_col7, row_infomusica_col8= st.columns(4)
-            row_infomusica_col5.metric(label="#️⃣ Número Aparições", value=info_musica.get_numero_aparicoes())
-            row_infomusica_col6.metric(label='🔥 Recorde Edições Consecutivas', value=info_musica.get_numero_aparicoes_consecutivas())
-            row_infomusica_col7.metric(label='🏅 Número Pódios', value=info_musica.get_numero_podios())
-            row_infomusica_col8.metric(label='🏅 Pódios Consecutivos', value=info_musica.get_numero_podios_consecutivos())
+            row_infomusica_estatisticas, row_infomusica_video = st.columns((5,2))
+            with row_infomusica_estatisticas:
+                row_infomusica_col1, row_infomusica_col2, row_infomusica_col3, row_infomusica_col4 = st.columns(4)
+                row_infomusica_col1.metric(label="📈 Melhor Posição", value=str(info_musica.get_melhor_posicao()) + 'ª', delta=info_musica.get_edicao_melhor_posicao(), delta_color='off')
+                row_infomusica_col2.metric(label="📉 Pior Posição", value=str(info_musica.get_pior_posicao()) + "ª", delta=info_musica.get_edicao_pior_posicao(), delta_color='off')
+                row_infomusica_col3.metric(label="📊 Posição Média", value=str(info_musica.get_posicao_media()) + "ª")
+                row_infomusica_col4.metric(label="🗓️ Década", value=info_musica.get_decada())
+                st.text('')
+                row_infomusica_col5, row_infomusica_col6, row_infomusica_col7, row_infomusica_col8 = st.columns(4)
+                row_infomusica_col5.metric(label="#️⃣ Número Aparições", value=info_musica.get_numero_aparicoes())
+                row_infomusica_col6.metric(label='🔥 Recorde Edições Consecutivas', value=info_musica.get_numero_aparicoes_consecutivas())
+                row_infomusica_col7.metric(label='🏅 Número Pódios', value=info_musica.get_numero_podios())
+                row_infomusica_col8.metric(label='🏅 Pódios Consecutivos', value=info_musica.get_numero_podios_consecutivos())
+            with row_infomusica_video:
+                st.video('https://www.youtube.com/embed/' + info_musica.get_video_id())
 
             st.subheader('Histórico')
             plotar_grafico(ch.get_grafico_linha(info_musica.get_posicoes(),'Edicao', 'Posicao', 'Edição', 'Posição no ranking', '', reversed=True))
