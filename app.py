@@ -199,8 +199,6 @@ with col2:
 
         st.divider()
 
-        st.subheader('Artistas, Músicas, Álbuns e Gêneros no Topo')
-
         row_topn_col, row_recencia = st.columns((4, 4), gap="large")
         with row_topn_col:
             st.subheader('Artistas, Músicas, Álbuns e Gêneros no Topo')
