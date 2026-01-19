@@ -305,16 +305,16 @@ with col2:
 
             with row_edicaosubidas:
                 st.subheader('Maiores subidas no ranking')
-                plotar_grafico(ch.get_grafico_slope(core.get_variacao_entre_anos(df_listagem, ano_edicao -1, ano_edicao, 5, False), 'Ano', ano_edicao - 1, ano_edicao, 'Posicao_Anterior', 'Posicao_Atual', 'Musica', 'Artista', 'Variaçãos no Ranking'))
+                plotar_grafico(ch.get_grafico_slope(core.get_variacao_entre_anos(df_listagem, ano_edicao -1, ano_edicao, 5, False), 'Ano', [ano_edicao - 1, ano_edicao], ['Posicao_Anterior', 'Posicao_Atual'], ['Musica', 'Artista'], 'Variaçãos no Ranking'))
 
             with row_edicaoquedas:
                 st.subheader('Maiores quedas no ranking')
-                plotar_grafico(ch.get_grafico_slope(core.get_variacao_entre_anos(df_listagem, ano_edicao -1, ano_edicao, 5, True), 'Ano', ano_edicao - 1, ano_edicao, 'Posicao_Anterior', 'Posicao_Atual', 'Musica', 'Artista', 'Variaçãos no Ranking'))
+                plotar_grafico(ch.get_grafico_slope(core.get_variacao_entre_anos(df_listagem, ano_edicao -1, ano_edicao, 5, True), 'Ano', [ano_edicao - 1, ano_edicao], ['Posicao_Anterior', 'Posicao_Atual'], ['Musica', 'Artista'], 'Variaçãos no Ranking'))
 
             st.divider()
 
         st.subheader('Duração das músicas')
-        plotar_grafico(ch.get_grafico_linha(info_edicao.get_duracoes(), 'FaixaDuracao', 'Count', 'Duração', 'Quantidade de músicas', 'Quantidade', smooth=True))
+        plotar_grafico(ch.get_grafico_linha(info_edicao.get_duracoes(), 'FaixaDuracao', ['Count'], 'Duração', ['Quantidade de músicas', 'Quantidade'], smooth=True))
 
         st.divider()
 
@@ -340,14 +340,14 @@ with col2:
         st.divider()
         st.subheader('One-Hit Wonders vs Recorrentes')
         st.markdown('A análise de artistas que tiveram somente uma única música diferente em edições até hoje vs artistas que tiveram pelo menos duas músicas diferentes ajuda a compreender a preferência dos ouvintes')
-        plotar_grafico(ch.get_grafico_linha(core.get_onehit_por_edicao(df_listagem_filtrada), 'Edicao', 'Recorrentes', 'Edições', 'Artistas', 'Recorrentes', 'One_Hit_Wonders', 'One-Hit Wonders'))
+        plotar_grafico(ch.get_grafico_linha(core.get_onehit_por_edicao(df_listagem_filtrada), 'Edicao', ['Recorrentes', 'One_Hit_Wonders'], 'Edições', ['Artistas', 'Recorrentes', 'One-Hit Wonders']))
 
         st.divider()
         st.subheader('Idade das músicas')
         st.markdown('A análise de idade das músicas demonstra se há uma tradição de votação em músicas mais antigas (especialmente da década de 70) ou se têm sido incorporadas músicas mais recentes na listagem.')
         st.markdown('A idade é recalculada a cada edição.')
 
-        plotar_grafico(ch.get_grafico_linha(core.get_idade_por_edicao(df_listagem_filtrada), 'Edicao', 'Media_Idade_Lancamento', 'Edições', 'Idade', 'Média de Idade', 'Mediana_Idade_Lancamento', 'Mediana de Idade'))
+        plotar_grafico(ch.get_grafico_linha(core.get_idade_por_edicao(df_listagem_filtrada), 'Edicao', ['Media_Idade_Lancamento', 'Mediana_Idade_Lancamento'], 'Edições', ['Idade', 'Média de Idade', 'Mediana de Idade']))
 
     with tab_curiosidades:
 
@@ -440,7 +440,7 @@ with col2:
                 st.video('https://www.youtube.com/embed/' + info_musica.get_video_id())
 
             st.subheader('Histórico')
-            plotar_grafico(ch.get_grafico_linha(info_musica.get_posicoes(),'Edicao', 'Posicao', 'Edição', 'Posição no ranking', '', reversed=True))
+            plotar_grafico(ch.get_grafico_linha(info_musica.get_posicoes(),'Edicao', ['Posicao'], 'Edição', ['Posição no ranking', 'Posição no ranking'], show_text= True, reversed=True))
 
         st.divider()
 
