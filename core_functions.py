@@ -345,11 +345,11 @@ def get_idade_por_edicao(df_data):
     df = filtrar_inconsistencias(df)
     df['Idade_Lancamento'] = df['Ano'] + 1 - df['Data_Lancamento_Album'].dt.year
 
-    df = df.loc[:,['Edicao', 'Idade_Lancamento']]
+    df = df.loc[:,['Ano', 'Edicao', 'Idade_Lancamento']]
     df['Media_Idade_Lancamento'] = df.groupby('Edicao')['Idade_Lancamento'].transform('mean').round(2)
     df['Mediana_Idade_Lancamento'] = df.groupby('Edicao')['Idade_Lancamento'].transform('median').round(0)
 
-    return df.groupby(['Edicao', 'Media_Idade_Lancamento', 'Mediana_Idade_Lancamento']).size().reset_index()
+    return df.groupby(['Ano', 'Edicao', 'Media_Idade_Lancamento', 'Mediana_Idade_Lancamento']).size().reset_index()
 
 def get_onehit_por_edicao(df_data):
     df = df_data.copy()
@@ -421,7 +421,10 @@ def get_ultima_aparicao(df_data):
     df = df.groupby(['Artista', 'Musica', 'Observacao'], as_index=False)['Edicao'].max()
 
 
-    return df[['Artista', 'Musica', 'Edicao']].sort_values(by=['Edicao', 'Artista', 'Musica'], ascending=[False, True, True])       
+    return df[['Artista', 'Musica', 'Edicao']].sort_values(by=['Edicao', 'Artista', 'Musica'], ascending=[False, True, True])
+
+def get_tendencia(df_data, x, y, deg):
+    return np.polynomial.Polynomial.fit(df_data[x], df_data[y], deg)       
 
 def get_predicoes(df):
     df = df[["posicao_ranking", "Artista", "Musica"]].head(500)

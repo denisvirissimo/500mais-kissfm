@@ -168,3 +168,6 @@ def get_grafico_slope(df_data, xlabel, xdata, ydata, legends, title):
                         x=0.5             
                     ))
     return fig
+
+def adicionar_linha_tendencia(fig, df_data, trend_data, xdata, ydata, ylabel):
+    return fig.add_scatter(x=df_data[xdata], y=trend_data(df_data[ydata]), name=ylabel, line_dash='dash', hovertemplate='<extra></extra>', mode='lines')

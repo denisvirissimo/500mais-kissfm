@@ -99,6 +99,9 @@ if 'opt_pink_floyd' not in st.session_state:
 if 'opt_live' not in st.session_state:
     st.session_state.opt_live = False
 
+if 'opt_tendencia' not in st.session_state:
+    st.session_state.opt_tendencia = False
+
 df_listagem = load_data(st.session_state.opt_pink_floyd, st.session_state.opt_live)
 df_predicoes = load_predicoes()
 
@@ -133,6 +136,8 @@ st.sidebar.subheader('Opções')
 st.sidebar.toggle('Agregar múltiplas versões de Another Brick in the Wall', key='opt_pink_floyd', help='[Clique aqui](https://github.com/denisvirissimo/500mais-kissfm#o-caso-de-another-brick-in-the-wall) para entender.')
 
 st.sidebar.toggle('Agregar músicas ao vivo', key='opt_live', help='Considerar músicas de estúdio e ao vivo como sendo as mesmas.')
+
+st.sidebar.toggle('Adicionar linha de tendência', key='opt_tendencia', help='Adiciona uma linha de tendência linear aos gráficos aplicáveis.')
 
 col1, col2, col3 = st.columns((.2, 7.1, .2))
 
@@ -347,7 +352,11 @@ with col2:
         st.markdown('A análise de idade das músicas demonstra se há uma tradição de votação em músicas mais antigas (especialmente da década de 70) ou se têm sido incorporadas músicas mais recentes na listagem.')
         st.markdown('A idade é recalculada a cada edição.')
 
-        plotar_grafico(ch.get_grafico_linha(core.get_idade_por_edicao(df_listagem_filtrada), 'Edicao', ['Media_Idade_Lancamento', 'Mediana_Idade_Lancamento'], 'Edições', ['Idade', 'Média de Idade', 'Mediana de Idade']))
+        dados_idade = core.get_idade_por_edicao(df_listagem_filtrada)
+        grafico_idade = ch.get_grafico_linha(dados_idade, 'Edicao', ['Media_Idade_Lancamento', 'Mediana_Idade_Lancamento'], 'Edições', ['Idade', 'Média de Idade', 'Mediana de Idade'])
+        if (st.session_state.opt_tendencia):
+            grafico_idade = ch.adicionar_linha_tendencia(grafico_idade, dados_idade, core.get_tendencia(dados_idade, 'Ano', 'Media_Idade_Lancamento', 1), 'Edicao', 'Ano', 'Tendência')
+        plotar_grafico(grafico_idade)
 
     with tab_curiosidades:
 
