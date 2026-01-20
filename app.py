@@ -355,8 +355,35 @@ with col2:
         dados_idade = core.get_idade_por_edicao(df_listagem_filtrada)
         grafico_idade = ch.get_grafico_linha(dados_idade, 'Edicao', ['Media_Idade_Lancamento', 'Mediana_Idade_Lancamento'], 'Edições', ['Idade', 'Média de Idade', 'Mediana de Idade'])
         if (st.session_state.opt_tendencia):
-            grafico_idade = ch.adicionar_linha_tendencia(grafico_idade, dados_idade, core.get_tendencia(dados_idade, 'Ano', 'Media_Idade_Lancamento', 1), 'Edicao', 'Ano', 'Tendência')
+            try:
+                grafico_idade = ch.adicionar_linha_tendencia(grafico_idade, dados_idade, core.get_tendencia(dados_idade, 'Ano', 'Media_Idade_Lancamento', 1), 'Edicao', 'Ano', 'Tendência')
+            except Exception as e:
+                print('erro')
         plotar_grafico(grafico_idade)
+
+        st.divider()
+        st.subheader('Taxa de renovação')
+        st.markdown('A taxa de renovação das músicas a cada edição pode indicar se a cada edição a lista está ficando mais estática (sempre os mesmos clássicos) ou mais volátil.')
+        
+        try:
+            dados_renovacao = core.get_renovacao_por_edicao(df_listagem_filtrada)
+
+            if (st.session_state.opt_tendencia):
+                tendencia_renovacao = core.get_tendencia(dados_renovacao, 'Ano', 'Taxa_Renovacao', 1) * 100
+                st.markdown(f"Inclinação da tendência: {tendencia_renovacao[1]:.3f} pontos percentuais por ano")
+                if tendencia_renovacao[1] < 0:
+                    st.markdown("Interpretação: o ranking está ficando mais estático ao longo do tempo (menos músicas novas a cada ano).")
+                elif tendencia_renovacao[1] > 0:
+                    st.markdown("Interpretação: o ranking está ficando mais volátil ao longo do tempo (mais renovação anual).")
+                else:
+                    st.markdown("Interpretação: não há tendência clara de aumento ou queda da renovação.")
+
+            grafico_renovacao = ch.get_grafico_linha(dados_renovacao, 'Edicao', ['Taxa_Renovacao'], 'Edições', ['Taxa de Renovação', 'Taxa de Renovação'], percentage=True)
+            if (st.session_state.opt_tendencia):
+                grafico_renovacao = ch.adicionar_linha_tendencia(grafico_renovacao, dados_renovacao, core.get_tendencia(dados_renovacao, 'Ano', 'Taxa_Renovacao', 1), 'Edicao', 'Ano', 'Tendência')
+            plotar_grafico(grafico_renovacao)
+        except Exception as e:
+            st.markdown('Dados insuficientes')
 
     with tab_curiosidades:
 

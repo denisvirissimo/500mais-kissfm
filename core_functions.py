@@ -36,6 +36,12 @@ def load_predicoes():
 def get_decada(ano):
     return 'Anos ' + str(ano)[2] + '0'
 
+def gerar_id_unico(df_data):
+  df_data['Id_Musica'] = (df_data['Artista'].fillna('') + '|||' +
+                    df_data['Musica'].fillna('') + '|||' +
+                    df_data['Observacao'].fillna(''))
+  return df_data
+
 def listar_edicoes(df_data):
     return np.array(np.unique(df_data.Edicao).tolist())
 
@@ -372,6 +378,30 @@ def get_onehit_por_edicao(df_data):
 
     return pd.merge(one_hit_wonders, artistas_recorrentes, on='Edicao', how='outer').fillna(0)
 
+def get_renovacao_por_edicao(df_data):
+    anos = listar_anos_edicoes(df_data)
+    df_data = gerar_id_unico(df_data)
+
+    renovacao = []
+    for i in range(1, len(anos)):
+        ano_anterior = anos[i-1]
+        ano_atual = anos[i]
+
+        musicas_ano_anterior = set(df_data[df_data['Ano']==ano_anterior]['Id_Musica'])
+        musicas_ano_atual = set(df_data[df_data['Ano']==ano_atual]['Id_Musica'])
+
+        taxa_renovacao = len((musicas_ano_atual - musicas_ano_anterior)) / len(musicas_ano_atual)
+        taxa_permanencia = len((musicas_ano_atual & musicas_ano_anterior)) / len(musicas_ano_atual)
+
+        renovacao.append({
+        'Ano': ano_atual,
+        'Edicao': df_data[df_data['Ano']==ano_atual].Edicao.head(1).values[0],
+        'Taxa_Renovacao': taxa_renovacao,
+        'Taxa_Permanencia': taxa_permanencia
+        })
+
+    df_renovacao = pd.DataFrame(renovacao)
+    return df_renovacao
 
 def get_dados_cumulativos(df_data, atributo):
     df_data = filtrar_inconsistencias(df_data)
@@ -424,7 +454,7 @@ def get_ultima_aparicao(df_data):
     return df[['Artista', 'Musica', 'Edicao']].sort_values(by=['Edicao', 'Artista', 'Musica'], ascending=[False, True, True])
 
 def get_tendencia(df_data, x, y, deg):
-    return np.polynomial.Polynomial.fit(df_data[x], df_data[y], deg)       
+    return np.poly1d(np.polyfit(df_data[x], df_data[y], deg))  
 
 def get_predicoes(df):
     df = df[["posicao_ranking", "Artista", "Musica"]].head(500)

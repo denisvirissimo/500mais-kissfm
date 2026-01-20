@@ -2,7 +2,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import bar_chart_race as bcr
 
-def get_grafico_linha(df_data, xdata, ydata, xlabel, ylabels, show_text = False, reversed = False, smooth = False):
+def get_grafico_linha(df_data, xdata, ydata, xlabel, ylabels, show_text = False, reversed = False, smooth = False, percentage = False):
     fig = px.line()
     fig.update_layout(xaxis_type='category', xaxis_title = xlabel, yaxis_title=ylabels[0], separators=',.')
     fig.add_scatter(x=df_data[xdata], y=df_data[ydata[0]], name=ylabels[1])
@@ -17,7 +17,8 @@ def get_grafico_linha(df_data, xdata, ydata, xlabel, ylabels, show_text = False,
         fig.update_layout(yaxis=dict(autorange='reversed'))
     if (smooth):
         fig.update_traces(line_shape='spline', fill='tozeroy')
-
+    if (percentage):
+        fig.update_layout(yaxis_tickformat='.1%')
     return fig
 
 def get_grafico_barra(df_data, xdata, ydata, xlabel, ylabel, x_diagonal=False):
