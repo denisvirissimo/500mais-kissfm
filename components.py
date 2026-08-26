@@ -1,5 +1,4 @@
 import streamlit as st
-import streamlit.components.v1 as components
 
 css_file = './resources/style.css'
 
@@ -35,4 +34,4 @@ def top10(df_data):
         </div>
 
     """
-    return components.html(html, height=600, width=650)
+    return st.html(html, width=650)
