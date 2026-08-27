@@ -2,18 +2,23 @@ import plotly.express as px
 import plotly.graph_objects as go
 import bar_chart_race as bcr
 
-def get_grafico_linha(df_data, xdata, ydata1, xlabel, ylabel, ylabel1, ydata2 = None, ylabel2 = None, reversed = False, smooth = False):
+def get_grafico_linha(df_data, xdata, ydata, xlabel, ylabels, show_text = False, reversed = False, smooth = False, percentage = False):
     fig = px.line()
-    fig.update_layout(xaxis_type='category', xaxis_title = xlabel, yaxis_title=ylabel, separators=',.')
-    fig.add_scatter(x=df_data[xdata], y=df_data[ydata1], name=ylabel1)
-    if (ydata2 != None):
-        fig.add_scatter(x=df_data[xdata], y=df_data[ydata2], name=ylabel2)
-    fig.update_traces(hovertemplate=xlabel + ': %{x}<br> Valor: %{y}<extra></extra>')
+    fig.update_layout(xaxis_type='category', xaxis_title = xlabel, yaxis_title=ylabels[0], separators=',.')
+    fig.add_scatter(x=df_data[xdata], y=df_data[ydata[0]], name=ylabels[1])
+    fig.update_traces(hovertemplate=xlabel + ': %{x}<br>' + ylabels[1] + ': %{y}<extra></extra>')
+
+    if (len(ydata) > 1):
+        fig.add_scatter(x=df_data[xdata], y=df_data[ydata[1]], name=ylabels[2], hovertemplate=xlabel + ': %{x}<br>' + ylabels[2] + ': %{y}<extra></extra>')
+
+    if(show_text):
+        fig.update_traces(textposition='top center', mode='lines+text', text=df_data[ydata[0]])
     if (reversed):
         fig.update_layout(yaxis=dict(autorange='reversed'))
     if (smooth):
         fig.update_traces(line_shape='spline', fill='tozeroy')
-
+    if (percentage):
+        fig.update_layout(yaxis_tickformat='.1%')
     return fig
 
 def get_grafico_barra(df_data, xdata, ydata, xlabel, ylabel, x_diagonal=False):
@@ -42,19 +47,22 @@ def get_grafico_barra_horizontal(df_data, xdata, ydata, xlabel, ylabel, x_diagon
         marker=dict(color='#C50B11'))
     )
 
+    if x_diagonal:
+        fig.update_xaxes(tickangle=-45)
+
     return fig
 
-def get_grafico_barra_stacked(df_data, xdata, ydata, ldata, xlabel, ylabel, llabel):
+def get_grafico_barra_stacked(df_data, xdata, ydata, ldata, xlabel, ylabel, legend):
     fig = px.bar(df_data, x=xdata, y=ydata, color=ldata, color_discrete_sequence=px.colors.qualitative.Dark24, barmode='stack')
-    fig.update_layout(xaxis_type='category', xaxis_title = xlabel, yaxis_title=ylabel, legend_title=llabel, legend_traceorder="reversed")
+    fig.update_layout(xaxis_type='category', xaxis_title = xlabel, yaxis_title=ylabel, legend_title=legend, legend_traceorder="reversed")
     fig.update_traces(hovertemplate='%{fullData.name}<br>' + xlabel + ": %{label}<br>" + ylabel + ": %{value}<extra></extra>")
     fig.update_xaxes(categoryorder='array', categoryarray=df_data.sort_values(xdata)[xdata].to_list())
 
     return fig
 
-def get_grafico_pizza(df_data, valor, nomes, label_valor, label_nomes):
-    fig = px.pie(df_data, values=valor, names=nomes)
-    fig.update_traces(textposition='inside', textinfo='percent+label', hovertemplate=label_nomes + ": %{label}<br>" + label_valor + ": %{value}<br>" + 'Percentual' + ": %{percent}<br>")
+def get_grafico_pizza(df_data, values, names, value_label, name_label):
+    fig = px.pie(df_data, values=values, names=names)
+    fig.update_traces(textposition='inside', textinfo='percent+label', hovertemplate=name_label + ": %{label}<br>" + value_label + ": %{value}<br>" + 'Percentual' + ": %{percent}<br>")
     fig.update_layout(
         separators=',.',
         uniformtext_minsize=12, uniformtext_mode='hide',
@@ -120,27 +128,27 @@ def get_analise_edicao_treemap(df_data, xdata, ydata):
     
     return fig
 
-def gerar_grafico_race(df_data, xdata, ydata, legend, titulo):
+def gerar_grafico_race(df_data, xdata, ydata, legend, title):
     df_values, df_ranks = bcr.prepare_long_data(df_data, index=xdata, columns=ydata, values=legend, steps_per_period=1)
     return bcr.bar_chart_race(df_values,
                               n_bars=10,
                               steps_per_period=18,
                               period_length=1000,
-                              title = titulo,
+                              title = title,
                               bar_texttemplate='{x:.0f}',
                               tick_template='{x:.0f}',
                               fixed_max=False,
                               filter_column_colors=True).data
 
-def get_grafico_slope(df_data, xlabel, xdata1, xdata2, ydata1, ydata2, legend1, legend2, title):
+def get_grafico_slope(df_data, xlabel, xdata, ydata, legends, title):
     fig = go.Figure()
 
     for _, row in df_data.iterrows():
         fig.add_trace(go.Scatter(
-            y=[row[ydata1], row[ydata2]],
+            y=[row[ydata[0]], row[ydata[1]]],
             mode='lines+markers+text',
-            name=f"{row[legend1]} - {row[legend2]}",
-            text=[int(row[xdata1]), int(row[xdata2])],
+            name=f"{row[legends[0]]} - {row[legends[1]]}",
+            text=[int(row[xdata[0]]), int(row[xdata[1]])],
             textposition='bottom right',
             line=dict(width=2),
             hoverinfo='none',
@@ -149,7 +157,7 @@ def get_grafico_slope(df_data, xlabel, xdata1, xdata2, ydata1, ydata2, legend1, 
     fig.update_layout(yaxis=dict(autorange='reversed', title=title, showticklabels=False),
                       xaxis=dict(
                             tickvals=[0, 1],
-                            ticktext=[xdata1,xdata2],
+                            ticktext=[xdata[0],xdata[1]],
                             title=xlabel
                             ),
                       height=600,
@@ -161,3 +169,6 @@ def get_grafico_slope(df_data, xlabel, xdata1, xdata2, ydata1, ydata2, legend1, 
                         x=0.5             
                     ))
     return fig
+
+def adicionar_linha_tendencia(fig, df_data, trend_data, xdata, ydata, ylabel):
+    return fig.add_scatter(x=df_data[xdata], y=trend_data(df_data[ydata]), name=ylabel, line_dash='dash', hovertemplate='<extra></extra>', mode='lines')

@@ -12,7 +12,7 @@ from streamlit_timeline import timeline
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 logo_file = './resources/logo.png'
 icon_file = './resources/favicon.ico'
-versao = '1.4.2'
+versao = '1.4.3'
 
 def configurar_css():
     st.markdown(
@@ -99,6 +99,9 @@ if 'opt_pink_floyd' not in st.session_state:
 if 'opt_live' not in st.session_state:
     st.session_state.opt_live = False
 
+if 'opt_tendencia' not in st.session_state:
+    st.session_state.opt_tendencia = False
+
 df_listagem = load_data(st.session_state.opt_pink_floyd, st.session_state.opt_live)
 df_predicoes = load_predicoes()
 
@@ -133,6 +136,8 @@ st.sidebar.subheader('Opções')
 st.sidebar.toggle('Agregar múltiplas versões de Another Brick in the Wall', key='opt_pink_floyd', help='[Clique aqui](https://github.com/denisvirissimo/500mais-kissfm#o-caso-de-another-brick-in-the-wall) para entender.')
 
 st.sidebar.toggle('Agregar músicas ao vivo', key='opt_live', help='Considerar músicas de estúdio e ao vivo como sendo as mesmas.')
+
+st.sidebar.toggle('Adicionar linha de tendência', key='opt_tendencia', help='Adiciona uma linha de tendência linear aos gráficos aplicáveis.')
 
 col1, col2, col3 = st.columns((.2, 7.1, .2))
 
@@ -305,16 +310,16 @@ with col2:
 
             with row_edicaosubidas:
                 st.subheader('Maiores subidas no ranking')
-                plotar_grafico(ch.get_grafico_slope(core.get_variacao_entre_anos(df_listagem, ano_edicao -1, ano_edicao, 5, False), 'Ano', ano_edicao - 1, ano_edicao, 'Posicao_Anterior', 'Posicao_Atual', 'Musica', 'Artista', 'Variaçãos no Ranking'))
+                plotar_grafico(ch.get_grafico_slope(core.get_variacao_entre_anos(df_listagem, ano_edicao -1, ano_edicao, 5, False), 'Ano', [ano_edicao - 1, ano_edicao], ['Posicao_Anterior', 'Posicao_Atual'], ['Musica', 'Artista'], 'Variaçãos no Ranking'))
 
             with row_edicaoquedas:
                 st.subheader('Maiores quedas no ranking')
-                plotar_grafico(ch.get_grafico_slope(core.get_variacao_entre_anos(df_listagem, ano_edicao -1, ano_edicao, 5, True), 'Ano', ano_edicao - 1, ano_edicao, 'Posicao_Anterior', 'Posicao_Atual', 'Musica', 'Artista', 'Variaçãos no Ranking'))
+                plotar_grafico(ch.get_grafico_slope(core.get_variacao_entre_anos(df_listagem, ano_edicao -1, ano_edicao, 5, True), 'Ano', [ano_edicao - 1, ano_edicao], ['Posicao_Anterior', 'Posicao_Atual'], ['Musica', 'Artista'], 'Variaçãos no Ranking'))
 
             st.divider()
 
         st.subheader('Duração das músicas')
-        plotar_grafico(ch.get_grafico_linha(info_edicao.get_duracoes(), 'FaixaDuracao', 'Count', 'Duração', 'Quantidade de músicas', 'Quantidade', smooth=True))
+        plotar_grafico(ch.get_grafico_linha(info_edicao.get_duracoes(), 'FaixaDuracao', ['Count'], 'Duração', ['Quantidade de músicas', 'Quantidade'], smooth=True))
 
         st.divider()
 
@@ -340,14 +345,45 @@ with col2:
         st.divider()
         st.subheader('One-Hit Wonders vs Recorrentes')
         st.markdown('A análise de artistas que tiveram somente uma única música diferente em edições até hoje vs artistas que tiveram pelo menos duas músicas diferentes ajuda a compreender a preferência dos ouvintes')
-        plotar_grafico(ch.get_grafico_linha(core.get_onehit_por_edicao(df_listagem_filtrada), 'Edicao', 'Recorrentes', 'Edições', 'Artistas', 'Recorrentes', 'One_Hit_Wonders', 'One-Hit Wonders'))
+        plotar_grafico(ch.get_grafico_linha(core.get_onehit_por_edicao(df_listagem_filtrada), 'Edicao', ['Recorrentes', 'One_Hit_Wonders'], 'Edições', ['Artistas', 'Recorrentes', 'One-Hit Wonders']))
 
         st.divider()
         st.subheader('Idade das músicas')
         st.markdown('A análise de idade das músicas demonstra se há uma tradição de votação em músicas mais antigas (especialmente da década de 70) ou se têm sido incorporadas músicas mais recentes na listagem.')
         st.markdown('A idade é recalculada a cada edição.')
 
-        plotar_grafico(ch.get_grafico_linha(core.get_idade_por_edicao(df_listagem_filtrada), 'Edicao', 'Media_Idade_Lancamento', 'Edições', 'Idade', 'Média de Idade', 'Mediana_Idade_Lancamento', 'Mediana de Idade'))
+        dados_idade = core.get_idade_por_edicao(df_listagem_filtrada)
+        grafico_idade = ch.get_grafico_linha(dados_idade, 'Edicao', ['Media_Idade_Lancamento', 'Mediana_Idade_Lancamento'], 'Edições', ['Idade', 'Média de Idade', 'Mediana de Idade'])
+        if (st.session_state.opt_tendencia):
+            try:
+                grafico_idade = ch.adicionar_linha_tendencia(grafico_idade, dados_idade, core.get_tendencia(dados_idade, 'Ano', 'Media_Idade_Lancamento', 1), 'Edicao', 'Ano', 'Tendência')
+            except Exception as e:
+                print('erro')
+        plotar_grafico(grafico_idade)
+
+        st.divider()
+        st.subheader('Taxa de renovação')
+        st.markdown('A taxa de renovação das músicas a cada edição pode indicar se a cada edição a lista está ficando mais estática (sempre os mesmos clássicos) ou mais volátil.')
+        
+        try:
+            dados_renovacao = core.get_renovacao_por_edicao(df_listagem_filtrada)
+
+            if (st.session_state.opt_tendencia):
+                tendencia_renovacao = core.get_tendencia(dados_renovacao, 'Ano', 'Taxa_Renovacao', 1) * 100
+                st.markdown(f"Inclinação da tendência: {tendencia_renovacao[1]:.3f} pontos percentuais por ano")
+                if tendencia_renovacao[1] < 0:
+                    st.markdown("Interpretação: o ranking está ficando mais estático ao longo do tempo (menos músicas novas a cada ano).")
+                elif tendencia_renovacao[1] > 0:
+                    st.markdown("Interpretação: o ranking está ficando mais volátil ao longo do tempo (mais renovação anual).")
+                else:
+                    st.markdown("Interpretação: não há tendência clara de aumento ou queda da renovação.")
+
+            grafico_renovacao = ch.get_grafico_linha(dados_renovacao, 'Edicao', ['Taxa_Renovacao'], 'Edições', ['Taxa de Renovação', 'Taxa de Renovação'], percentage=True)
+            if (st.session_state.opt_tendencia):
+                grafico_renovacao = ch.adicionar_linha_tendencia(grafico_renovacao, dados_renovacao, core.get_tendencia(dados_renovacao, 'Ano', 'Taxa_Renovacao', 1), 'Edicao', 'Ano', 'Tendência')
+            plotar_grafico(grafico_renovacao)
+        except Exception as e:
+            st.markdown('Dados insuficientes')
 
     with tab_curiosidades:
 
@@ -440,7 +476,7 @@ with col2:
                 st.video('https://www.youtube.com/embed/' + info_musica.get_video_id())
 
             st.subheader('Histórico')
-            plotar_grafico(ch.get_grafico_linha(info_musica.get_posicoes(),'Edicao', 'Posicao', 'Edição', 'Posição no ranking', '', reversed=True))
+            plotar_grafico(ch.get_grafico_linha(info_musica.get_posicoes(),'Edicao', ['Posicao'], 'Edição', ['Posição no ranking', 'Posição no ranking'], show_text= True, reversed=True))
 
         st.divider()
 
