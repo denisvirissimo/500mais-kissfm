@@ -131,13 +131,10 @@ df_listagem_filtrada = core.filtrar_anos(df_listagem_filtrada, ano_inicial, ano_
 
 st.sidebar.caption('Estes filtros se aplicam somente às abas Visão Geral e Análises.')
 
-st.sidebar.subheader('Opções')
-
-st.sidebar.toggle('Agregar múltiplas versões de Another Brick in the Wall', key='opt_pink_floyd', help='[Clique aqui](https://github.com/denisvirissimo/500mais-kissfm#o-caso-de-another-brick-in-the-wall) para entender.')
-
-st.sidebar.toggle('Agregar músicas ao vivo', key='opt_live', help='Considerar músicas de estúdio e ao vivo como sendo as mesmas.')
-
-st.sidebar.toggle('Adicionar linha de tendência', key='opt_tendencia', help='Adiciona uma linha de tendência linear aos gráficos aplicáveis.')
+with st.sidebar.popover('Opções', icon='⚙️', width="stretch", type="secondary"):
+    st.toggle('Agregar múltiplas versões de Another Brick in the Wall', key='opt_pink_floyd', help='[Clique aqui](https://github.com/denisvirissimo/500mais-kissfm#o-caso-de-another-brick-in-the-wall) para entender.')
+    st.toggle('Agregar músicas ao vivo', key='opt_live', help='Considerar músicas de estúdio e ao vivo como sendo as mesmas.')
+    st.toggle('Adicionar linha de tendência', key='opt_tendencia', help='Adiciona uma linha de tendência linear aos gráficos aplicáveis.')
 
 col1, col2, col3 = st.columns((.2, 7.1, .2))
 
