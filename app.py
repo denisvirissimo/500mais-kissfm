@@ -188,7 +188,7 @@ with col2:
 
     st.divider()
 
-    tab_geral, tab_edicao, tab_edicoes, tab_analises, tab_curiosidades, tab_predicoes = st.tabs(["Visão Geral", "Por Edição", "Todas as Edições", "Análises", "Curiosidades", "Predições"])
+    tab_geral, tab_edicao, tab_edicoes, tab_musicas, tab_artistas, tab_analises, tab_curiosidades, tab_predicoes = st.tabs(["Visão Geral", "Por Edição", "Todas as Edições", "Músicas", "Artistas", "Análises", "Curiosidades", "Predições"])
 
     with tab_geral:
         st.subheader('Evolução de músicas distintas ao longo das edições')
@@ -323,6 +323,76 @@ with col2:
         st.subheader('Mapa de Gêneros Músicais')
         plotar_grafico(ch.get_analise_edicao_treemap(info_edicao.get_lista_generos(), ['Genero', 'Artista', 'Musica'], 'Quantidade'))
 
+    with tab_musicas:
+        row_anelisemusica_col1, row_anelisemusica_col2= st.columns((3.5, 4.1), gap="small")
+        with row_anelisemusica_col1:
+            st.subheader('Informações da música')
+
+            lista_select_musicas = get_dicionario_musicas(df_listagem)
+            musica_selecionada = st.selectbox(
+              'Escolha a música',
+              label_visibility='hidden',
+              options=lista_select_musicas.keys(),
+              index=None,
+              placeholder='Digite ou escolha a música',
+              format_func=lambda l: lista_select_musicas[l])
+
+            st.text('')
+
+        if (musica_selecionada != None):
+            info_musica = InfoMusica(core.filtrar_inconsistencias(df_listagem), musica_selecionada)
+            row_infomusica_estatisticas, row_infomusica_video = st.columns((5,2))
+            with row_infomusica_estatisticas:
+                row_infomusica_col1, row_infomusica_col2, row_infomusica_col3, row_infomusica_col4 = st.columns(4)
+                row_infomusica_col1.metric(label="📈 Melhor Posição", value=str(info_musica.get_melhor_posicao()) + 'ª', delta=info_musica.get_edicao_melhor_posicao(), delta_color='off')
+                row_infomusica_col2.metric(label="📉 Pior Posição", value=str(info_musica.get_pior_posicao()) + "ª", delta=info_musica.get_edicao_pior_posicao(), delta_color='off')
+                row_infomusica_col3.metric(label="📊 Posição Média", value=str(info_musica.get_posicao_media()) + "ª")
+                row_infomusica_col4.metric(label="🗓️ Década", value=info_musica.get_decada())
+                st.text('')
+                row_infomusica_col5, row_infomusica_col6, row_infomusica_col7, row_infomusica_col8 = st.columns(4)
+                row_infomusica_col5.metric(label="#️⃣ Número Aparições", value=info_musica.get_numero_aparicoes())
+                row_infomusica_col6.metric(label='🔥 Recorde Edições Consecutivas', value=info_musica.get_numero_aparicoes_consecutivas())
+                row_infomusica_col7.metric(label='🏅 Número Pódios', value=info_musica.get_numero_podios())
+                row_infomusica_col8.metric(label='🏅 Pódios Consecutivos', value=info_musica.get_numero_podios_consecutivos())
+            with row_infomusica_video:
+                st.video('https://www.youtube.com/embed/' + info_musica.get_video_id())
+
+            st.subheader('Histórico')
+            plotar_grafico(ch.get_grafico_linha(info_musica.get_posicoes(),'Edicao', ['Posicao'], 'Edição', ['Posição no ranking', 'Posição no ranking'], show_text= True, reversed=True))
+
+    with tab_artistas:
+        row_aneliseartista_col1, row_aneliseartista_col2= st.columns((3.5, 4.1), gap="small")
+        with row_aneliseartista_col1:
+            st.subheader('Informações do artista')
+
+            lista_select_artistas = get_dicionario_artistas(df_listagem)
+            artista_selecionado = st.selectbox(
+                'Escolha o artista',
+                label_visibility='hidden',
+                options=lista_select_artistas.keys(),
+                index=None,
+                placeholder='Digite ou escolha o artista',
+                format_func=lambda l: lista_select_artistas[l])
+
+            st.text('')
+
+        if (artista_selecionado != None):
+            row_infoartista_col1, row_infoartista_col2, row_infoartista_col3, row_infoartista_col4 = st.columns(4)
+            info_artista = InfoArtista(core.filtrar_inconsistencias(df_listagem), artista_selecionado)
+            row_infoartista_col1.metric(label="📈 Melhor Posição", value=str(info_artista.get_melhor_posicao()) + 'ª', delta=info_artista.get_edicao_melhor_posicao(), delta_color='off')
+            row_infoartista_col2.metric(label="📉 Pior Posição", value=str(info_artista.get_pior_posicao()) + "ª", delta=info_artista.get_edicao_pior_posicao(), delta_color='off')
+            row_infoartista_col3.metric(label="🎶 Total Músicas", value=info_artista.get_total_musicas())
+            row_infoartista_col4.metric(label="️#️⃣ Número Edições", value=info_artista.get_total_edicoes())
+            st.text('')
+            row_infoartista_col5, row_infoartista_col6, row_infoartista_col7, row_infoartista_col8= st.columns(4)
+            row_infoartista_col5.metric(label="️🎵Média Músicas", value=locale.format_string("%.2f", info_artista.get_media_musicas_por_edicao(), grouping = True), delta="por edição", delta_color='off')
+            row_infoartista_col6.metric(label='🔥 Recorde Edições Consecutivas', value=info_artista.get_numero_aparicoes_consecutivas())
+            row_infoartista_col7.metric(label='🏅 Número Pódios', value=info_artista.get_numero_podios())
+            row_infoartista_col8.metric(label='🏅 Pódios Consecutivos', value=info_artista.get_numero_podios_consecutivos())
+
+            st.subheader('Histórico')
+            plotar_grafico(ch.get_grafico_barra(info_artista.get_aparicoes(),'Edicao', 'Count', 'Edição', 'Quantidade de músicas'))
+
     with tab_analises:
         st.subheader('Análises por edição')
         st.markdown('A análise de alguns aspectos por edição pode mostrar a diversidade de músicas, álbuns e gêneros musicais a cada edição.')
@@ -436,78 +506,6 @@ with col2:
 
         st.subheader('Mapa de calor de músicas presentes em todas as edições')
         plotar_mapa_calor(ch.get_mapa_calor(core.get_musicas_todos_anos(df_listagem), "Edição", "Música", "Posição", "Edições", "Músicas"))
-
-        st.divider()
-
-        row_anelisemusica_col1, row_anelisemusica_col2= st.columns((3.5, 4.1), gap="small")
-        with row_anelisemusica_col1:
-            st.subheader('Informações da música')
-
-            lista_select_musicas = get_dicionario_musicas(df_listagem)
-            musica_selecionada = st.selectbox(
-              'Escolha a música',
-              label_visibility='hidden',
-              options=lista_select_musicas.keys(),
-              index=None,
-              placeholder='Digite ou escolha a música',
-              format_func=lambda l: lista_select_musicas[l])
-
-            st.text('')
-
-        if (musica_selecionada != None):
-            info_musica = InfoMusica(core.filtrar_inconsistencias(df_listagem), musica_selecionada)
-            row_infomusica_estatisticas, row_infomusica_video = st.columns((5,2))
-            with row_infomusica_estatisticas:
-                row_infomusica_col1, row_infomusica_col2, row_infomusica_col3, row_infomusica_col4 = st.columns(4)
-                row_infomusica_col1.metric(label="📈 Melhor Posição", value=str(info_musica.get_melhor_posicao()) + 'ª', delta=info_musica.get_edicao_melhor_posicao(), delta_color='off')
-                row_infomusica_col2.metric(label="📉 Pior Posição", value=str(info_musica.get_pior_posicao()) + "ª", delta=info_musica.get_edicao_pior_posicao(), delta_color='off')
-                row_infomusica_col3.metric(label="📊 Posição Média", value=str(info_musica.get_posicao_media()) + "ª")
-                row_infomusica_col4.metric(label="🗓️ Década", value=info_musica.get_decada())
-                st.text('')
-                row_infomusica_col5, row_infomusica_col6, row_infomusica_col7, row_infomusica_col8 = st.columns(4)
-                row_infomusica_col5.metric(label="#️⃣ Número Aparições", value=info_musica.get_numero_aparicoes())
-                row_infomusica_col6.metric(label='🔥 Recorde Edições Consecutivas', value=info_musica.get_numero_aparicoes_consecutivas())
-                row_infomusica_col7.metric(label='🏅 Número Pódios', value=info_musica.get_numero_podios())
-                row_infomusica_col8.metric(label='🏅 Pódios Consecutivos', value=info_musica.get_numero_podios_consecutivos())
-            with row_infomusica_video:
-                st.video('https://www.youtube.com/embed/' + info_musica.get_video_id())
-
-            st.subheader('Histórico')
-            plotar_grafico(ch.get_grafico_linha(info_musica.get_posicoes(),'Edicao', ['Posicao'], 'Edição', ['Posição no ranking', 'Posição no ranking'], show_text= True, reversed=True))
-
-        st.divider()
-
-        row_aneliseartista_col1, row_aneliseartista_col2= st.columns((3.5, 4.1), gap="small")
-        with row_aneliseartista_col1:
-            st.subheader('Informações do artista')
-
-            lista_select_artistas = get_dicionario_artistas(df_listagem)
-            artista_selecionado = st.selectbox(
-                'Escolha o artista',
-                label_visibility='hidden',
-                options=lista_select_artistas.keys(),
-                index=None,
-                placeholder='Digite ou escolha o artista',
-                format_func=lambda l: lista_select_artistas[l])
-
-            st.text('')
-
-        if (artista_selecionado != None):
-            row_infoartista_col1, row_infoartista_col2, row_infoartista_col3, row_infoartista_col4 = st.columns(4)
-            info_artista = InfoArtista(core.filtrar_inconsistencias(df_listagem), artista_selecionado)
-            row_infoartista_col1.metric(label="📈 Melhor Posição", value=str(info_artista.get_melhor_posicao()) + 'ª', delta=info_artista.get_edicao_melhor_posicao(), delta_color='off')
-            row_infoartista_col2.metric(label="📉 Pior Posição", value=str(info_artista.get_pior_posicao()) + "ª", delta=info_artista.get_edicao_pior_posicao(), delta_color='off')
-            row_infoartista_col3.metric(label="🎶 Total Músicas", value=info_artista.get_total_musicas())
-            row_infoartista_col4.metric(label="️#️⃣ Número Edições", value=info_artista.get_total_edicoes())
-            st.text('')
-            row_infoartista_col5, row_infoartista_col6, row_infoartista_col7, row_infoartista_col8= st.columns(4)
-            row_infoartista_col5.metric(label="️🎵Média Músicas", value=locale.format_string("%.2f", info_artista.get_media_musicas_por_edicao(), grouping = True), delta="por edição", delta_color='off')
-            row_infoartista_col6.metric(label='🔥 Recorde Edições Consecutivas', value=info_artista.get_numero_aparicoes_consecutivas())
-            row_infoartista_col7.metric(label='🏅 Número Pódios', value=info_artista.get_numero_podios())
-            row_infoartista_col8.metric(label='🏅 Pódios Consecutivos', value=info_artista.get_numero_podios_consecutivos())
-
-            st.subheader('Histórico')
-            plotar_grafico(ch.get_grafico_barra(info_artista.get_aparicoes(),'Edicao', 'Count', 'Edição', 'Quantidade de músicas'))
 
         with row_videos:
 
